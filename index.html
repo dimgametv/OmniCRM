@@ -9,7 +9,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-        tailwind.config = { theme: { extend: { screens: { 'xs': '380px' }, fontSize: { 'xxs': ['0.625rem', { lineHeight: '0.875rem' }] } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: { 'xs': '380px' },
+                    fontSize: { 'xxs': ['0.625rem', { lineHeight: '0.875rem' }] }
+                }
+            }
+        }
     </script>
     <style>
         :root { --safe-bottom: env(safe-area-inset-bottom, 0px); --px: 5px; }
@@ -26,12 +33,14 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .px-app { padding-left: var(--px); padding-right: var(--px); }
 
+        /* Responsive text using clamp */
         .t-xs { font-size: clamp(8px, 2.2vw, 11px); }
         .t-sm { font-size: clamp(10px, 2.8vw, 13px); }
         .t-base { font-size: clamp(12px, 3.2vw, 15px); }
         .t-lg { font-size: clamp(14px, 3.8vw, 18px); }
         .t-xl { font-size: clamp(16px, 4.5vw, 24px); }
         .t-2xl { font-size: clamp(18px, 5.5vw, 30px); }
+        .t-3xl { font-size: clamp(22px, 6.5vw, 36px); }
 
         .card { border-radius: clamp(12px, 3vw, 20px); }
         .card-sm { border-radius: clamp(8px, 2vw, 14px); }
@@ -59,6 +68,7 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
         .modal-content { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px 5px; }
 
+        /* Desktop wide layout */
         @media (min-width: 768px) {
             :root { --px: 12px; }
             #main-content { padding: 16px 24px 90px; max-width: 1200px; margin: 0 auto; width: 100%; }
@@ -68,13 +78,21 @@
             #desktop-sidebar { display: flex !important; }
             #view-main { flex-direction: row !important; }
             .mobile-header-avatar { display: none !important; }
+        }
+        @media (max-width: 767px) {
+            #desktop-sidebar { display: none !important; }
+        }
+
+        /* Chart container */
+        .chart-container { position: relative; width: 100%; }
+        .chart-container canvas { width: 100% !important; }
+
+        /* Smooth scrollbar for desktop */
+        @media (min-width: 768px) {
             #main-content::-webkit-scrollbar { width: 6px; }
             #main-content::-webkit-scrollbar-track { background: #f1f5f9; }
             #main-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         }
-        @media (max-width: 767px) { #desktop-sidebar { display: none !important; } }
-        .chart-container { position: relative; width: 100%; }
-        .chart-container canvas { width: 100% !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -84,89 +102,114 @@
         <div class="w-full max-w-sm space-y-6 animate-in" style="padding:0 5px;">
             <div class="text-center">
                 <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-xl shadow-blue-100">
-                    <i data-lucide="shield-check" class="w-7 h-7"></i>
+                    <i data-lucide="landmark" class="w-7 h-7"></i>
                 </div>
                 <h1 class="t-2xl font-extrabold tracking-tight">OmniFinance</h1>
-                <p class="text-slate-400 mt-1 font-medium t-sm">Secure Access</p>
+                <p class="text-slate-400 mt-1 font-medium t-sm">Lending · Property · Agent CRM</p>
             </div>
             <div class="space-y-3">
-                <input type="password" id="pin-input" placeholder="Enter 4-Digit PIN" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="w-full field-input bg-slate-50 border border-slate-100 text-center text-2xl tracking-widest font-black outline-none focus:ring-2 focus:ring-blue-600 transition-all">
-                <button onclick="handleAuth()" id="login-btn" class="w-full bg-blue-600 text-white btn-primary shadow-lg active:scale-95 transition-all t-base">Unlock Workspace</button>
-                <p class="text-center t-xs text-slate-400" id="auth-msg">Default PIN is 1234</p>
+                <input type="email" placeholder="Email" class="w-full field-input bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-blue-600 transition-all">
+                <input type="password" placeholder="Password" class="w-full field-input bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-blue-600 transition-all">
+                <button onclick="handleAuth()" id="login-btn" class="w-full bg-blue-600 text-white btn-primary shadow-lg active:scale-95 transition-all t-base">Enter Workspace</button>
+                <p class="text-center t-xs text-slate-400">Demo: any credentials work</p>
             </div>
         </div>
     </section>
 
     <section id="view-main" class="hidden flex-1 flex flex-col overflow-hidden">
+
         <aside id="desktop-sidebar" class="hidden w-56 bg-white border-r border-slate-100 flex-col flex-shrink-0 overflow-y-auto">
-            <div class="p-5 border-b border-slate-50 flex items-center gap-2">
-                <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i data-lucide="landmark" class="w-5 h-5"></i></div>
-                <div><p class="font-extrabold text-sm">OmniFinance</p><p class="text-[10px] text-slate-400">v3.0 Secure CRM</p></div>
+            <div class="p-5 border-b border-slate-50">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i data-lucide="landmark" class="w-5 h-5"></i></div>
+                    <div><p class="font-extrabold text-sm">OmniFinance</p><p class="text-[10px] text-slate-400">v2.0 CRM</p></div>
+                </div>
             </div>
             <nav class="flex-1 p-3 space-y-1">
-                ${['home','loans','payments','properties','customers','expenses','reminders','reports'].map(t=>`
-                <button onclick="switchTab('${t===`customers`?`borrowers`:t}')" id="side-${t===`customers`?`borrowers`:t}" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all capitalize">
-                    <i data-lucide="${t==='home'?'layout-grid':t==='loans'?'briefcase':t==='payments'?'wallet':t==='properties'?'home':t==='customers'?'users':t==='expenses'?'trending-down':t==='reminders'?'bell':'bar-chart-3'}" class="w-4 h-4"></i> ${t}
-                </button>`).join('')}
+                <button onclick="switchTab('home')" id="side-home" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
+                </button>
+                <button onclick="switchTab('loans')" id="side-loans" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="briefcase" class="w-4 h-4"></i> Loans
+                </button>
+                <button onclick="switchTab('payments')" id="side-payments" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="wallet" class="w-4 h-4"></i> Payments
+                </button>
+                <button onclick="switchTab('properties')" id="side-properties" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="home" class="w-4 h-4"></i> Properties
+                </button>
+                <button onclick="switchTab('agents')" id="side-agents" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="users" class="w-4 h-4"></i> Agents
+                </button>
+                <button onclick="switchTab('expenses')" id="side-expenses" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="trending-down" class="w-4 h-4"></i> Expenses
+                </button>
+                <button onclick="switchTab('reminders')" id="side-reminders" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="bell" class="w-4 h-4"></i> Reminders
+                </button>
+                <button onclick="switchTab('reports')" id="side-reports" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Reports
+                </button>
             </nav>
             <div class="p-3 border-t border-slate-50">
                 <button onclick="switchTab('profile')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50">
-                    <i data-lucide="settings" class="w-4 h-4"></i> Settings
+                    <div class="w-7 h-7 rounded-full bg-slate-100 overflow-hidden"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FinanceManager" class="w-full h-full"></div>
+                    Settings
                 </button>
             </div>
         </aside>
 
         <div class="flex-1 flex flex-col overflow-hidden">
             <header class="flex items-center justify-between bg-white border-b border-slate-50 relative z-10" style="padding:10px var(--px);">
-                <div class="min-w-0 flex-1 flex items-center gap-2">
-                    <div class="md:hidden w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"><i data-lucide="landmark" class="w-4 h-4"></i></div>
+                <div class="min-w-0 flex-1">
+                    <p class="t-xs font-bold text-blue-600 uppercase tracking-widest nowrap md:hidden">Finance Module</p>
                     <h2 id="app-title" class="t-lg font-bold truncate">Dashboard</h2>
                 </div>
                 <div class="flex items-center gap-c">
-                    <button onclick="openCalculator()" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center relative hover:bg-slate-100">
-                        <i data-lucide="calculator" class="w-4 h-4 text-slate-500"></i>
-                    </button>
-                    <button onclick="showNotifications()" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center relative hover:bg-slate-100">
+                    <button onclick="showNotifications()" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center relative">
                         <i data-lucide="bell" class="w-4 h-4 text-slate-500"></i>
                         <span id="notif-badge" class="hidden absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border border-white"></span>
                     </button>
-                    <button onclick="switchTab('profile')" class="mobile-header-avatar w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                        <i data-lucide="settings" class="w-4 h-4 text-slate-500"></i>
+                    <button onclick="switchTab('profile')" class="mobile-header-avatar w-8 h-8 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-100 flex-shrink-0">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FinanceManager" class="w-full h-full">
                     </button>
                 </div>
             </header>
-            
-            <div id="search-bar-container" class="hidden bg-white border-b border-slate-50 px-app py-2">
-                <div class="relative">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input type="text" id="global-search" onkeyup="filterLists(this.value)" placeholder="Search customers, loans, properties..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-600 transition-all t-sm">
-                </div>
-            </div>
 
             <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar md:overflow-y-scroll relative"></main>
         </div>
 
         <nav id="bottom-nav" class="flex justify-around items-center bg-white border-t border-slate-100 z-50 md:hidden" style="padding:6px 0;padding-bottom:calc(var(--safe-bottom)+4px);">
-            <button id="tab-home" onclick="switchTab('home')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1"><i data-lucide="layout-grid" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Home</span></button>
-            <button id="tab-loans" onclick="switchTab('loans')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1"><i data-lucide="briefcase" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Loans</span></button>
-            <button id="tab-add" onclick="showFabMenu()" class="flex flex-col items-center gap-cs min-w-0 flex-1 relative" style="margin-top:-14px;"><div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-200"><i data-lucide="plus" class="w-5 h-5"></i></div></button>
-            <button id="tab-borrowers" onclick="switchTab('borrowers')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1"><i data-lucide="users" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Clients</span></button>
-            <button id="tab-properties" onclick="switchTab('properties')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1"><i data-lucide="home" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Assets</span></button>
+            <button id="tab-home" onclick="switchTab('home')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1">
+                <i data-lucide="layout-grid" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Home</span>
+            </button>
+            <button id="tab-loans" onclick="switchTab('loans')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1">
+                <i data-lucide="briefcase" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Loans</span>
+            </button>
+            <button id="tab-add" onclick="showFabMenu()" class="flex flex-col items-center gap-cs min-w-0 flex-1 relative" style="margin-top:-14px;">
+                <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-200"><i data-lucide="plus" class="w-5 h-5"></i></div>
+            </button>
+            <button id="tab-properties" onclick="switchTab('properties')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1">
+                <i data-lucide="home" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Property</span>
+            </button>
+            <button id="tab-payments" onclick="switchTab('payments')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1">
+                <i data-lucide="wallet" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Payments</span>
+            </button>
         </nav>
     </section>
 </div>
 
 <div id="fab-menu" class="hidden fixed inset-0 z-[200]" onclick="closeFabMenu(event)">
-    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+    <div class="absolute inset-0 bg-black/30"></div>
     <div class="absolute bottom-24 right-3 md:bottom-8 md:right-8 flex flex-col gap-c items-end">
         <button onclick="switchTab('borrower-create');closeFabMenu();" class="flex items-center gap-2 bg-white shadow-lg rounded-full py-2 px-3 t-sm font-bold animate-in">
-            <span class="nowrap">New Customer</span><div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"><i data-lucide="user-plus" class="w-4 h-4"></i></div>
+            <span class="nowrap">New Borrower</span><div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"><i data-lucide="user-plus" class="w-4 h-4"></i></div>
         </button>
         <button onclick="switchTab('loan-create');closeFabMenu();" class="flex items-center gap-2 bg-white shadow-lg rounded-full py-2 px-3 t-sm font-bold animate-in" style="animation-delay:50ms">
-            <span class="nowrap">Disburse Loan</span><div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
+            <span class="nowrap">New Loan</span><div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
         </button>
         <button onclick="switchTab('payment-entry');closeFabMenu();" class="flex items-center gap-2 bg-white shadow-lg rounded-full py-2 px-3 t-sm font-bold animate-in" style="animation-delay:100ms">
-            <span class="nowrap">Record Payment</span><div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center"><i data-lucide="receipt" class="w-4 h-4"></i></div>
+            <span class="nowrap">Add Payment</span><div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center"><i data-lucide="receipt" class="w-4 h-4"></i></div>
         </button>
         <button onclick="switchTab('property-create');closeFabMenu();" class="flex items-center gap-2 bg-white shadow-lg rounded-full py-2 px-3 t-sm font-bold animate-in" style="animation-delay:150ms">
             <span class="nowrap">Add Property</span><div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center"><i data-lucide="home" class="w-4 h-4"></i></div>
@@ -176,59 +219,143 @@
 <div id="modal-container" class="hidden"></div>
 
 <script>
-// ===== APP SEC & DATA STORE =====
-const APP_PIN = localStorage.getItem('of_pin') || '1234';
+// ===== DUMMY DATA SEEDER =====
+function seedDummyData() {
+    if (localStorage.getItem('of_seeded')) return;
+    
+    const borrowers = [
+        { id:'B1', name:'Rajesh Sharma', phone:'9876543210', address:'12 MG Road, Jaipur', aadhaar:'1234-5678-9012', pan:'ABCPS1234R', occupation:'Businessman', creditScore:'720', notes:'Regular client', createdAt:'2024-01-15' },
+        { id:'B2', name:'Priya Patel', phone:'9823456789', address:'45 Ring Road, Ahmedabad', aadhaar:'2345-6789-0123', pan:'DEFPP4567S', occupation:'Doctor', creditScore:'780', notes:'', createdAt:'2024-02-10' },
+        { id:'B3', name:'Amit Kumar', phone:'9934567890', address:'78 Civil Lines, Delhi', aadhaar:'3456-7890-1234', pan:'GHIAK7890T', occupation:'Govt Employee', creditScore:'650', notes:'Needs follow up', createdAt:'2024-03-05' },
+        { id:'B4', name:'Sunita Devi', phone:'9845678901', address:'23 Station Road, Lucknow', aadhaar:'4567-8901-2345', pan:'JKLSD2345U', occupation:'Teacher', creditScore:'700', notes:'', createdAt:'2024-03-20' },
+        { id:'B5', name:'Vikram Singh', phone:'9756789012', address:'56 Mall Road, Chandigarh', aadhaar:'5678-9012-3456', pan:'MNVVS5678V', occupation:'Contractor', creditScore:'680', notes:'High value client', createdAt:'2024-04-01' },
+        { id:'B6', name:'Meena Gupta', phone:'9667890123', address:'89 Lake View, Udaipur', aadhaar:'6789-0123-4567', pan:'OPMG8901W', occupation:'Shop Owner', creditScore:'710', notes:'', createdAt:'2024-04-15' },
+    ];
+
+    const agents = [
+        { id:'A1', name:'Ravi Verma', phone:'9988776655', email:'ravi@mail.com', commissionRate:3, specialization:'Property', area:'Jaipur', status:'Active', createdAt:'2024-01-10' },
+        { id:'A2', name:'Sanjay Mishra', phone:'9877665544', email:'sanjay@mail.com', commissionRate:5, specialization:'Loans', area:'Delhi NCR', status:'Active', createdAt:'2024-02-01' },
+        { id:'A3', name:'Kavita Jain', phone:'9766554433', email:'kavita@mail.com', commissionRate:4, specialization:'General', area:'Ahmedabad', status:'Active', createdAt:'2024-03-01' },
+    ];
+
+    const properties = [
+        { id:'PR1', title:'Plot No 45, Mansarovar', type:'Residential', location:'Mansarovar, Jaipur', area:'200', areaUnit:'sqyd', price:3500000, marketValue:4000000, owner:'Rajesh Sharma', ownerPhone:'9876543210', status:'Mortgaged', registryNo:'JR-2024-4521', notes:'Corner plot, prime location', photos:[], createdAt:'2024-01-20' },
+        { id:'PR2', title:'Shop G-12, Crystal Mall', type:'Commercial', location:'Vaishali Nagar, Jaipur', area:'450', areaUnit:'sqft', price:8500000, marketValue:9200000, owner:'Vikram Singh', ownerPhone:'9756789012', status:'Available', registryNo:'JR-2024-7823', notes:'Ground floor shop', photos:[], createdAt:'2024-02-15' },
+        { id:'PR3', title:'Farmland, NH-8', type:'Land', location:'Ajmer Road, Jaipur', area:'2', areaUnit:'acre', price:12000000, marketValue:15000000, owner:'External Party', ownerPhone:'9555444333', status:'Under Deal', registryNo:'', notes:'Near upcoming highway', photos:[], createdAt:'2024-03-10' },
+        { id:'PR4', title:'Flat 302, Green Valley', type:'Residential', location:'Tonk Road, Jaipur', area:'1200', areaUnit:'sqft', price:4800000, marketValue:5200000, owner:'Priya Patel', ownerPhone:'9823456789', status:'Sold', registryNo:'JR-2024-1156', notes:'3BHK fully furnished', photos:[], createdAt:'2024-04-05' },
+        { id:'PR5', title:'Warehouse Unit 7', type:'Commercial', location:'Sitapura Industrial, Jaipur', area:'3000', areaUnit:'sqft', price:6500000, marketValue:7000000, owner:'Amit Kumar', ownerPhone:'9934567890', status:'Available', registryNo:'JR-2024-9034', notes:'', photos:[], createdAt:'2024-05-01' },
+    ];
+
+    const loans = [
+        { id:'L1', borrowerId:'B1', amount:500000, interest:12, tenure:24, startDate:'2024-02-01', type:'Property', collateral:'Plot No 45 Registry', propertyId:'PR1', agentId:'A1', guarantor:'Mohan Sharma', guarantorPhone:'9811111111', processingFee:5000, status:'Active', createdAt:'2024-02-01' },
+        { id:'L2', borrowerId:'B2', amount:200000, interest:15, tenure:12, startDate:'2024-03-01', type:'Personal', collateral:'Gold jewellery 50g', propertyId:'', agentId:'', guarantor:'', guarantorPhone:'', processingFee:2000, status:'Active', createdAt:'2024-03-01' },
+        { id:'L3', borrowerId:'B3', amount:1000000, interest:10, tenure:36, startDate:'2024-01-15', type:'Business', collateral:'Shop mortgage', propertyId:'', agentId:'A2', guarantor:'Suresh Kumar', guarantorPhone:'9822222222', processingFee:10000, status:'Active', createdAt:'2024-01-15' },
+        { id:'L4', borrowerId:'B5', amount:300000, interest:18, tenure:6, startDate:'2024-04-01', type:'Gold', collateral:'Gold 100g', propertyId:'', agentId:'A3', guarantor:'', guarantorPhone:'', processingFee:3000, status:'Active', createdAt:'2024-04-01' },
+        { id:'L5', borrowerId:'B4', amount:150000, interest:14, tenure:12, startDate:'2024-01-01', type:'Personal', collateral:'', propertyId:'', agentId:'', guarantor:'Ram Devi', guarantorPhone:'9833333333', processingFee:1500, status:'Closed', createdAt:'2024-01-01' },
+        { id:'L6', borrowerId:'B6', amount:800000, interest:11, tenure:24, startDate:'2024-05-01', type:'Property', collateral:'Flat registry', propertyId:'PR4', agentId:'A1', guarantor:'Ashok Gupta', guarantorPhone:'9844444444', processingFee:8000, status:'Active', createdAt:'2024-05-01' },
+    ];
+
+    const payments = [
+        { id:'P1', loanId:'L1', amount:28750, date:'2024-03-01', method:'Cash', notes:'March EMI', receiptNo:'R100001', createdAt:'2024-03-01' },
+        { id:'P2', loanId:'L1', amount:28750, date:'2024-04-02', method:'UPI', notes:'April EMI', receiptNo:'R100002', createdAt:'2024-04-02' },
+        { id:'P3', loanId:'L1', amount:28750, date:'2024-05-01', method:'Bank Transfer', notes:'May EMI', receiptNo:'R100003', createdAt:'2024-05-01' },
+        { id:'P4', loanId:'L2', amount:22500, date:'2024-04-01', method:'Cash', notes:'April EMI', receiptNo:'R100004', createdAt:'2024-04-01' },
+        { id:'P5', loanId:'L2', amount:22500, date:'2024-05-03', method:'Cash', notes:'May EMI', receiptNo:'R100005', createdAt:'2024-05-03' },
+        { id:'P6', loanId:'L3', amount:36111, date:'2024-02-15', method:'Cheque', notes:'Feb EMI', receiptNo:'R100006', createdAt:'2024-02-15' },
+        { id:'P7', loanId:'L3', amount:36111, date:'2024-03-15', method:'Cheque', notes:'March EMI', receiptNo:'R100007', createdAt:'2024-03-15' },
+        { id:'P8', loanId:'L3', amount:36111, date:'2024-04-15', method:'Bank Transfer', notes:'April EMI', receiptNo:'R100008', createdAt:'2024-04-15' },
+        { id:'P9', loanId:'L4', amount:59000, date:'2024-05-01', method:'Cash', notes:'May EMI', receiptNo:'R100009', createdAt:'2024-05-01' },
+        { id:'P10', loanId:'L5', amount:164750, date:'2024-06-15', method:'Cash', notes:'Full settlement', receiptNo:'R100010', createdAt:'2024-06-15' },
+        { id:'P11', loanId:'L6', amount:40333, date:'2024-06-01', method:'UPI', notes:'June EMI', receiptNo:'R100011', createdAt:'2024-06-01' },
+        { id:'P12', loanId:'L1', amount:28750, date: new Date().toISOString().split('T')[0], method:'Cash', notes:'Today EMI', receiptNo:'R100012', createdAt: new Date().toISOString().split('T')[0] },
+    ];
+
+    const expenses = [
+        { id:'E1', category:'Office', amount:15000, description:'Monthly rent June', date:'2024-06-01', loanId:'', propertyId:'', createdAt:'2024-06-01' },
+        { id:'E2', category:'Legal', amount:8000, description:'Registry documentation L1', date:'2024-02-05', loanId:'L1', propertyId:'PR1', createdAt:'2024-02-05' },
+        { id:'E3', category:'Travel', amount:3500, description:'Site visit Ajmer Road', date:'2024-03-12', loanId:'', propertyId:'PR3', createdAt:'2024-03-12' },
+        { id:'E4', category:'Salary', amount:25000, description:'Staff salary June', date:'2024-06-05', loanId:'', propertyId:'', createdAt:'2024-06-05' },
+        { id:'E5', category:'Registration', amount:45000, description:'Flat registration charges', date:'2024-04-10', loanId:'L6', propertyId:'PR4', createdAt:'2024-04-10' },
+        { id:'E6', category:'Miscellaneous', amount:2200, description:'Stationery & printing', date:'2024-05-20', loanId:'', propertyId:'', createdAt:'2024-05-20' },
+    ];
+
+    const commissions = [
+        { id:'C1', agentId:'A1', loanId:'L1', amount:'15000', status:'Paid', date:'2024-02-05' },
+        { id:'C2', agentId:'A2', loanId:'L3', amount:'50000', status:'Pending', date:'2024-01-20' },
+        { id:'C3', agentId:'A3', loanId:'L4', amount:'12000', status:'Pending', date:'2024-04-05' },
+        { id:'C4', agentId:'A1', loanId:'L6', amount:'24000', status:'Pending', date:'2024-05-05' },
+    ];
+
+    const reminders = [
+        { id:'RM1', title:'Follow up Amit Kumar EMI', date: new Date().toISOString().split('T')[0], priority:'High', relatedTo:'Loan L3', done:false, createdAt:'2024-06-01' },
+        { id:'RM2', title:'Farmland site visit', date:'2024-06-20', priority:'Medium', relatedTo:'Property PR3', done:false, createdAt:'2024-06-10' },
+        { id:'RM3', title:'Renew office insurance', date:'2024-07-01', priority:'Low', relatedTo:'', done:false, createdAt:'2024-06-01' },
+        { id:'RM4', title:'Collect gold loan documents', date:'2024-05-25', priority:'High', relatedTo:'Loan L4', done:true, createdAt:'2024-05-20' },
+    ];
+
+    db.borrowers = borrowers; db.loans = loans; db.payments = payments;
+    db.properties = properties; db.agents = agents; db.expenses = expenses;
+    db.commissions = commissions; db.reminders = reminders;
+    db.save();
+    localStorage.setItem('of_seeded', '1');
+}
+
+// ===== DATA STORE =====
 const db = {
     borrowers: JSON.parse(localStorage.getItem('of_borrowers')) || [],
     loans: JSON.parse(localStorage.getItem('of_loans')) || [],
     payments: JSON.parse(localStorage.getItem('of_payments')) || [],
     properties: JSON.parse(localStorage.getItem('of_properties')) || [],
+    agents: JSON.parse(localStorage.getItem('of_agents')) || [],
     expenses: JSON.parse(localStorage.getItem('of_expenses')) || [],
+    commissions: JSON.parse(localStorage.getItem('of_commissions')) || [],
     reminders: JSON.parse(localStorage.getItem('of_reminders')) || [],
-    save() { ['borrowers','loans','payments','properties','expenses','reminders'].forEach(k => localStorage.setItem('of_'+k, JSON.stringify(this[k]))); }
-};
-
-let state = { tab:'home', activeId:null };
-let chartInstances = {};
-const today = () => new Date().toISOString().split('T')[0];
-const fmt = n => { n=parseFloat(n); if(n>=10000000) return '₹'+(n/10000000).toFixed(2)+'Cr'; if(n>=100000) return '₹'+(n/100000).toFixed(2)+'L'; return '₹'+n.toLocaleString('en-IN'); };
-const fmtF = n => '₹'+parseFloat(n).toLocaleString('en-IN');
-
-// ===== ADVANCED CALCULATIONS =====
-const calculateEMI = (principal, rate, tenureMonths, type) => {
-    const p = parseFloat(principal), r = parseFloat(rate), t = parseInt(tenureMonths);
-    if(type === 'Reducing') {
-        const monthlyRate = (r / 100) / 12;
-        const emi = (p * monthlyRate * Math.pow(1 + monthlyRate, t)) / (Math.pow(1 + monthlyRate, t) - 1);
-        const totalPayable = emi * t;
-        return { totalPayable, emi: emi.toFixed(2), totalInterest: totalPayable - p };
-    } else { // Flat
-        const totalInterest = p * (r / 100) * (t / 12);
-        const totalPayable = p + totalInterest;
-        return { totalPayable, emi: (totalPayable / t).toFixed(2), totalInterest };
+    save() {
+        ['borrowers','loans','payments','properties','agents','expenses','commissions','reminders'].forEach(k => localStorage.setItem('of_'+k, JSON.stringify(this[k])));
     }
 };
 
+seedDummyData();
+// Reload after seed
+db.borrowers = JSON.parse(localStorage.getItem('of_borrowers')) || [];
+db.loans = JSON.parse(localStorage.getItem('of_loans')) || [];
+db.payments = JSON.parse(localStorage.getItem('of_payments')) || [];
+db.properties = JSON.parse(localStorage.getItem('of_properties')) || [];
+db.agents = JSON.parse(localStorage.getItem('of_agents')) || [];
+db.expenses = JSON.parse(localStorage.getItem('of_expenses')) || [];
+db.commissions = JSON.parse(localStorage.getItem('of_commissions')) || [];
+db.reminders = JSON.parse(localStorage.getItem('of_reminders')) || [];
+
+let state = { tab:'home', activeLoanId:null, activePropertyId:null, activeAgentId:null };
+let chartInstances = {};
+
+// ===== CALCULATIONS =====
+const calculateEMI = (a, r, t) => {
+    const p = parseFloat(a), fi = p * (parseFloat(r)/100) * (parseInt(t)/12);
+    return { totalPayable: p+fi, emi: ((p+fi)/parseInt(t)).toFixed(2) };
+};
 const getLoanStats = (id) => {
     const l = db.loans.find(x=>x.id===id); if(!l) return null;
-    const paidPrincipal = db.payments.filter(p=>p.loanId===id).reduce((s,p)=>s+parseFloat(p.amount),0);
-    const {totalPayable, emi, totalInterest} = calculateEMI(l.amount, l.interest, l.tenure, l.interestType);
-    return {...l, totalPayable, paid: paidPrincipal, balance: totalPayable - paidPrincipal, emi, totalInterest};
+    const paid = db.payments.filter(p=>p.loanId===id).reduce((s,p)=>s+p.amount,0);
+    const {totalPayable,emi} = calculateEMI(l.amount,l.interest,l.tenure);
+    return {...l, totalPayable, paid, balance:totalPayable-paid, emi};
 };
-
 const getOverdueLoans = () => {
     const now = new Date();
     return db.loans.filter(l => {
         if(l.status!=='Active') return false;
-        const monthsPassed = Math.max(0, Math.floor((now - new Date(l.startDate))/(1000*60*60*24*30)));
-        if(!monthsPassed) return false;
+        const mp = Math.max(0, Math.floor((now - new Date(l.startDate))/(1000*60*60*24*30)));
+        if(!mp) return false;
         const s = getLoanStats(l.id);
-        return s.paid < monthsPassed * parseFloat(s.emi) * 0.9;
+        return s.paid < mp * parseFloat(s.emi) * 0.9;
     });
 };
+const fmt = n => { n=parseFloat(n); if(n>=10000000) return '₹'+(n/10000000).toFixed(1)+'Cr'; if(n>=100000) return '₹'+(n/100000).toFixed(1)+'L'; if(n>=1000) return '₹'+(n/1000).toFixed(1)+'K'; return '₹'+n.toLocaleString('en-IN'); };
+const fmtF = n => '₹'+parseFloat(n).toLocaleString('en-IN');
+const today = () => new Date().toISOString().split('T')[0];
 
-// ===== UTILS & ACTIONS =====
-const compressImage = (file, maxSize=600) => new Promise(res => {
+// ===== ACTIONS =====
+const compressImage = (file, maxSize=800) => new Promise(res => {
     if(!file || !file.type.startsWith('image/')) return res(null);
     const r = new FileReader();
     r.onload = e => {
@@ -238,50 +365,494 @@ const compressImage = (file, maxSize=600) => new Promise(res => {
             if(w>h && w>maxSize) { h*=maxSize/w; w=maxSize; } else if(h>w && h>maxSize) { w*=maxSize/h; h=maxSize; }
             const c = document.createElement('canvas'); c.width=w; c.height=h;
             c.getContext('2d').drawImage(i,0,0,w,h);
-            res(c.toDataURL('image/jpeg',0.5)); // High compression for localstorage
+            res(c.toDataURL('image/jpeg',0.6));
         };
         i.src = e.target.result;
     };
     r.readAsDataURL(file);
 });
 
-async function createBorrower(e) { 
-    e.preventDefault(); const btn = e.target.querySelector('button'); btn.innerText='Saving...'; btn.disabled=true;
-    const f=new FormData(e.target); 
-    const photoInput = e.target.querySelector('input[name="photo"]');
-    const photoBase64 = photoInput.files.length ? await compressImage(photoInput.files[0]) : '';
-    
-    db.borrowers.push({id:'B'+Date.now(), name:f.get('name'), phone:f.get('phone'), address:f.get('address'), idProof:f.get('idProof'), guarantor:f.get('guarantor'), notes:f.get('notes'), photo:photoBase64, createdAt:today()}); 
-    db.save(); switchTab('borrowers'); 
-}
-
-function createLoan(e) { 
-    e.preventDefault(); const f=new FormData(e.target); 
-    db.loans.push({id:'L'+Date.now(), borrowerId:f.get('borrowerId'), amount:parseFloat(f.get('amount')), interest:parseFloat(f.get('interest')), interestType:f.get('interestType'), tenure:parseInt(f.get('tenure')), startDate:f.get('startDate'), collateral:f.get('collateral'), status:'Active', createdAt:today()}); 
-    db.save(); switchTab('loans'); 
-}
-
-function addPayment(e) { 
-    e.preventDefault(); const f=new FormData(e.target), amt=parseFloat(f.get('amount')), lid=f.get('loanId'); 
-    db.payments.push({id:'P'+Date.now(), loanId:lid, amount:amt, date:f.get('date'), method:f.get('method'), notes:f.get('notes'), createdAt:today()}); 
-    const s=getLoanStats(lid); if(s.balance<=0.01) db.loans.find(l=>l.id===lid).status='Closed'; 
-    db.save(); switchTab('payments'); 
-}
+function createBorrower(e) { e.preventDefault(); const f=new FormData(e.target); db.borrowers.push({id:'B'+Date.now(),name:f.get('name'),phone:f.get('phone'),address:f.get('address'),aadhaar:f.get('aadhaar')||'',pan:f.get('pan')||'',occupation:f.get('occupation')||'',creditScore:f.get('creditScore')||'',notes:f.get('notes')||'',createdAt:today()}); db.save(); switchTab('loans'); }
+function createLoan(e) { e.preventDefault(); const f=new FormData(e.target); const loan={id:'L'+Date.now(),borrowerId:f.get('borrowerId'),amount:parseFloat(f.get('amount')),interest:parseFloat(f.get('interest')),tenure:parseInt(f.get('tenure')),startDate:f.get('startDate'),type:f.get('loanType')||'Personal',collateral:f.get('collateral')||'',propertyId:f.get('propertyId')||'',agentId:f.get('agentId')||'',guarantor:f.get('guarantor')||'',guarantorPhone:f.get('guarantorPhone')||'',processingFee:parseFloat(f.get('processingFee'))||0,status:'Active',createdAt:today()}; db.loans.push(loan); if(loan.agentId){const ag=db.agents.find(a=>a.id===loan.agentId);if(ag) db.commissions.push({id:'C'+Date.now(),agentId:loan.agentId,loanId:loan.id,amount:(loan.amount*ag.commissionRate/100).toFixed(2),status:'Pending',date:today()});} db.save(); switchTab('loans'); }
+function addPayment(e) { e.preventDefault(); const f=new FormData(e.target),amt=parseFloat(f.get('amount')),lid=f.get('loanId'); db.payments.push({id:'P'+Date.now(),loanId:lid,amount:amt,date:f.get('date'),method:f.get('method')||'Cash',notes:f.get('notes'),receiptNo:'R'+Date.now().toString().slice(-6),createdAt:today()}); const s=getLoanStats(lid); if(s.balance<=0.01) db.loans.find(l=>l.id===lid).status='Closed'; db.save(); switchTab('payments'); }
 
 async function createProperty(e) { 
-    e.preventDefault(); const btn = e.target.querySelector('button'); btn.innerText='Saving...'; btn.disabled=true;
+    e.preventDefault(); 
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.innerText = 'Saving...'; btn.disabled = true;
     const f=new FormData(e.target); 
     const fileInput = e.target.querySelector('input[name="photos"]');
     const photos = [];
-    if(fileInput && fileInput.files.length) { for(let i=0; i<fileInput.files.length; i++) { const b64 = await compressImage(fileInput.files[i]); if(b64) photos.push(b64); } }
-    db.properties.push({id:'PR'+Date.now(), title:f.get('title'), type:f.get('type'), location:f.get('location'), purchasePrice:parseFloat(f.get('purchasePrice')), marketValue:parseFloat(f.get('marketValue'))||0, salePrice:parseFloat(f.get('salePrice'))||0, owner:f.get('owner'), status:f.get('status'), notes:f.get('notes'), photos, createdAt:today()}); 
+    if(fileInput && fileInput.files.length) {
+        for(let i=0; i<fileInput.files.length; i++) {
+            const b64 = await compressImage(fileInput.files[i]);
+            if(b64) photos.push(b64);
+        }
+    }
+    db.properties.push({id:'PR'+Date.now(),title:f.get('title'),type:f.get('type'),location:f.get('location'),area:f.get('area'),areaUnit:f.get('areaUnit')||'sqft',price:parseFloat(f.get('price')),marketValue:parseFloat(f.get('marketValue'))||0,owner:f.get('owner'),ownerPhone:f.get('ownerPhone')||'',status:f.get('status')||'Available',registryNo:f.get('registryNo')||'',notes:f.get('notes')||'',photos:photos,createdAt:today()}); 
     db.save(); switchTab('properties'); 
 }
 
-function addExpense(e) { e.preventDefault(); const f=new FormData(e.target); db.expenses.push({id:'E'+Date.now(), category:f.get('category'), amount:parseFloat(f.get('amount')), date:f.get('date'), description:f.get('description'), createdAt:today()}); db.save(); switchTab('expenses'); }
-function addReminder(e) { e.preventDefault(); const f=new FormData(e.target); db.reminders.push({id:'RM'+Date.now(), title:f.get('title'), date:f.get('date'), done:false, createdAt:today()}); db.save(); switchTab('reminders'); }
+function createAgent(e) { e.preventDefault(); const f=new FormData(e.target); db.agents.push({id:'A'+Date.now(),name:f.get('name'),phone:f.get('phone'),email:f.get('email')||'',commissionRate:parseFloat(f.get('commissionRate'))||5,specialization:f.get('specialization')||'General',area:f.get('area')||'',status:'Active',createdAt:today()}); db.save(); switchTab('agents'); }
+function addExpense(e) { e.preventDefault(); const f=new FormData(e.target); db.expenses.push({id:'E'+Date.now(),category:f.get('category'),amount:parseFloat(f.get('amount')),description:f.get('description'),date:f.get('date'),loanId:'',propertyId:'',createdAt:today()}); db.save(); switchTab('expenses'); }
+function addReminder(e) { e.preventDefault(); const f=new FormData(e.target); db.reminders.push({id:'RM'+Date.now(),title:f.get('title'),date:f.get('date'),priority:f.get('priority')||'Medium',relatedTo:f.get('relatedTo')||'',done:false,createdAt:today()}); db.save(); switchTab('reminders'); }
+function toggleReminder(id) { const r=db.reminders.find(x=>x.id===id); if(r){r.done=!r.done; db.save(); switchTab('reminders');} }
+function closeLoan(id) { if(confirm("Close this loan?")){ db.loans.find(l=>l.id===id).status='Closed'; db.save(); switchTab('loans'); } }
+function deleteItem(t,id) { if(!confirm("Delete permanently?")) return; db[t]=db[t].filter(i=>i.id!==id); db.save(); switchTab(state.tab); }
 
-// ===== UI CONTROLLERS =====
-function handleAuth() { 
-    const input = document.getElementById('pin-input').value;
-    if(input
+// ===== NAV =====
+function showView(id) { document.querySelectorAll('#app > section').forEach(s=>s.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); lucide.createIcons(); }
+function handleAuth() { document.getElementById('login-btn').innerText='Accessing...'; setTimeout(()=>{showView('main');switchTab('home');},500); }
+function showFabMenu() { document.getElementById('fab-menu').classList.remove('hidden'); setTimeout(()=>lucide.createIcons(),50); }
+function closeFabMenu(e) { if(!e||e.target===e.currentTarget||e.target.closest('.bg-black\\/30')) document.getElementById('fab-menu').classList.add('hidden'); }
+function showNotifications() {
+    const od=getOverdueLoans(), pr=db.reminders.filter(r=>!r.done&&r.date<=today());
+    let h=`<div class="modal-overlay" onclick="if(event.target===this)document.getElementById('modal-container').classList.add('hidden')"><div class="modal-content"><div class="flex justify-between items-center mb-cl px-app"><h3 class="t-lg font-bold">Notifications (${od.length+pr.length})</h3><button onclick="document.getElementById('modal-container').classList.add('hidden')" class="p-1"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-2 px-app">`;
+    if(!od.length&&!pr.length) h+=`<p class="text-center text-slate-400 t-sm py-6">All clear!</p>`;
+    od.forEach(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId),s=getLoanStats(l.id);h+=`<div class="p-c bg-red-50 border border-red-100 card-sm flex items-center gap-2"><div class="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center flex-shrink-0"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div><div class="min-w-0 flex-1"><p class="t-sm font-bold text-red-900 truncate">${b?.name} - EMI Overdue</p><p class="t-xs text-red-600">Due: ${fmtF(s.emi)}</p></div></div>`;});
+    pr.forEach(r=>{h+=`<div class="p-c bg-amber-50 border border-amber-100 card-sm flex items-center gap-2"><div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center flex-shrink-0"><i data-lucide="clock" class="w-4 h-4"></i></div><div class="min-w-0 flex-1"><p class="t-sm font-bold text-amber-900 truncate">${r.title}</p><p class="t-xs text-amber-600">${r.date}</p></div></div>`;});
+    h+=`</div></div></div>`;
+    document.getElementById('modal-container').innerHTML=h; document.getElementById('modal-container').classList.remove('hidden'); lucide.createIcons();
+}
+
+function switchTab(tab, id=null) {
+    state.tab=tab;
+    if(id){if(tab==='loan-details')state.activeLoanId=id;else if(tab==='property-details')state.activePropertyId=id;else if(tab==='agent-details')state.activeAgentId=id;}
+    Object.values(chartInstances).forEach(c=>c.destroy()); chartInstances={};
+
+    const container=document.getElementById('main-content'),title=document.getElementById('app-title');
+    const mainTabs=['home','loans','payments','properties'];
+    // Mobile nav
+    document.querySelectorAll('#bottom-nav button').forEach(b=>b.classList.remove('tab-active'));
+    const tb=document.getElementById('tab-'+tab); if(tb) tb.classList.add('tab-active');
+    // Desktop sidebar
+    document.querySelectorAll('.sidebar-btn').forEach(b=>{b.classList.remove('bg-blue-50','text-blue-600');b.classList.add('text-slate-500');});
+    const sb=document.getElementById('side-'+tab); if(sb){sb.classList.add('bg-blue-50','text-blue-600');sb.classList.remove('text-slate-500');}
+
+    const titles={'home':'Dashboard','loans':'Loans','payments':'Payments','properties':'Properties','agents':'Agents','borrower-create':'New Borrower','loan-create':'New Loan','loan-details':'Loan Details','payment-entry':'Add Payment','property-create':'New Property','property-details':'Property Details','agent-create':'New Agent','agent-details':'Agent Details','expenses':'Expenses','expense-create':'New Expense','reminders':'Reminders','reminder-create':'New Reminder','reports':'Reports','profile':'Settings'};
+    title.innerText=titles[tab]||'Dashboard';
+    const od=getOverdueLoans(),pr=db.reminders.filter(r=>!r.done&&r.date<=today());
+    const nb=document.getElementById('notif-badge'); if(od.length+pr.length>0) nb.classList.remove('hidden'); else nb.classList.add('hidden');
+
+    container.innerHTML=`<div class="animate-in">${renderPage(tab)}</div>`;
+    container.scrollTop=0;
+    lucide.createIcons();
+    // Init charts after DOM is ready
+    setTimeout(()=>initCharts(tab),100);
+}
+</script>
+<script>
+// ===== CHART INITIALIZATION =====
+function initCharts(tab) {
+    if (tab === 'home') {
+        // Monthly collection chart
+        const ctx1 = document.getElementById('chart-monthly');
+        if (ctx1) {
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const monthData = months.map((m,i) => {
+                const mo = String(i+1).padStart(2,'0');
+                return db.payments.filter(p => p.date && p.date.substring(5,7) === mo).reduce((s,p) => s+p.amount, 0);
+            });
+            chartInstances.monthly = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: months, datasets: [{ label: 'Collections', data: monthData, backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 6, barThickness: window.innerWidth < 500 ? 12 : 20 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => fmt(v), font: { size: 9 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
+            });
+        }
+        // Loan type donut
+        const ctx2 = document.getElementById('chart-loan-types');
+        if (ctx2) {
+            const types = ['Personal','Property','Business','Gold','Vehicle','Other'];
+            const tData = types.map(t => db.loans.filter(l => (l.type||'Personal') === t).length).filter((_,i) => types[i]);
+            const tLabels = types.filter((_,i) => tData[i] > 0);
+            const tVals = tData.filter(v => v > 0);
+            chartInstances.loanTypes = new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: tLabels, datasets: [{ data: tVals, backgroundColor: ['#3b82f6','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#6b7280'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } } } }
+            });
+        }
+    }
+    if (tab === 'reports') {
+        const ctx3 = document.getElementById('chart-income-expense');
+        if (ctx3) {
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const incData = months.map((m,i) => { const mo=String(i+1).padStart(2,'0'); return db.payments.filter(p=>p.date?.substring(5,7)===mo).reduce((s,p)=>s+p.amount,0); });
+            const expData = months.map((m,i) => { const mo=String(i+1).padStart(2,'0'); return db.expenses.filter(e=>e.date?.substring(5,7)===mo).reduce((s,e)=>s+e.amount,0); });
+            chartInstances.incExp = new Chart(ctx3, {
+                type: 'line',
+                data: { labels: months, datasets: [
+                    { label: 'Income', data: incData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 2 },
+                    { label: 'Expenses', data: expData, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, tension: 0.4, pointRadius: 2 }
+                ] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { beginAtZero: true, ticks: { callback: v=>fmt(v), font:{size:9} }, grid:{color:'#f1f5f9'} }, x: { ticks:{font:{size:9}}, grid:{display:false} } } }
+            });
+        }
+        const ctx4 = document.getElementById('chart-property-types');
+        if (ctx4) {
+            const pt = ['Residential','Commercial','Land','Agricultural','Industrial'];
+            const ptD = pt.map(t => db.properties.filter(p=>p.type===t).length);
+            chartInstances.propTypes = new Chart(ctx4, {
+                type: 'polarArea',
+                data: { labels: pt.filter((_,i)=>ptD[i]>0), datasets: [{ data: ptD.filter(v=>v>0), backgroundColor: ['#3b82f6','#8b5cf6','#f59e0b','#10b981','#6b7280'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position:'bottom', labels: { boxWidth:10, padding:6, font:{size:10} } } } }
+            });
+        }
+    }
+}
+
+// ===== RENDER PAGES =====
+function renderPage(tab) {
+    const td = today();
+    const backBtn = (to) => `<div class="flex items-center gap-2 mb-cl"><button onclick="switchTab('${to}')" class="p-1.5 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button></div>`;
+
+    // ===== HOME =====
+    if (tab === 'home') {
+        const totalLent=db.loans.reduce((s,l)=>s+l.amount,0);
+        const active=db.loans.filter(l=>l.status==='Active');
+        const outstanding=active.reduce((s,l)=>{const st=getLoanStats(l.id);return s+(st?st.balance:0);},0);
+        const totalColl=db.payments.reduce((s,p)=>s+p.amount,0);
+        const todayColl=db.payments.filter(p=>p.date===td).reduce((s,p)=>s+p.amount,0);
+        const overdues=getOverdueLoans();
+        const totalExp=db.expenses.reduce((s,e)=>s+e.amount,0);
+        const pendingComm=db.commissions.filter(c=>c.status==='Pending').reduce((s,c)=>s+parseFloat(c.amount),0);
+        const propValue=db.properties.reduce((s,p)=>s+(p.price||0),0);
+
+        return `
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-c mb-cl">
+            <div class="stat-card bg-blue-600 text-white shadow-lg shadow-blue-100"><p class="t-xs font-bold opacity-70 uppercase nowrap">Total Lent</p><h4 class="t-xl font-black mt-0.5 nowrap">${fmt(totalLent)}</h4><p class="t-xs opacity-60">${active.length} active loans</p></div>
+            <div class="stat-card bg-white border border-slate-100 shadow-sm"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Outstanding</p><h4 class="t-xl font-black mt-0.5 nowrap">${fmt(outstanding)}</h4><p class="t-xs text-slate-400">balance due</p></div>
+            <div class="stat-card bg-emerald-50 text-emerald-700 border border-emerald-100"><p class="t-xs font-bold opacity-70 uppercase nowrap">Today's Coll.</p><h4 class="t-xl font-black mt-0.5 nowrap">${fmt(todayColl)}</h4><p class="t-xs opacity-60">total: ${fmt(totalColl)}</p></div>
+            <div class="stat-card bg-red-50 text-red-700 border border-red-100 relative">${overdues.length?`<div class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full pulse-dot"></div>`:''}<p class="t-xs font-bold opacity-70 uppercase nowrap">Overdue</p><h4 class="t-xl font-black mt-0.5">${overdues.length}</h4><p class="t-xs opacity-60">need attention</p></div>
+        </div>
+        <div class="grid grid-cols-4 md:grid-cols-4 gap-c mb-cl">
+            <div class="stat-card bg-white border border-slate-100 text-center"><i data-lucide="home" class="w-4 h-4 text-amber-500 mx-auto"></i><p class="t-lg font-black mt-0.5">${db.properties.length}</p><p class="t-xs text-slate-400 nowrap">Properties</p></div>
+            <div class="stat-card bg-white border border-slate-100 text-center"><i data-lucide="users" class="w-4 h-4 text-purple-500 mx-auto"></i><p class="t-lg font-black mt-0.5">${db.agents.length}</p><p class="t-xs text-slate-400 nowrap">Agents</p></div>
+            <div class="stat-card bg-white border border-slate-100 text-center"><i data-lucide="user-check" class="w-4 h-4 text-blue-500 mx-auto"></i><p class="t-lg font-black mt-0.5">${db.borrowers.length}</p><p class="t-xs text-slate-400 nowrap">Borrowers</p></div>
+            <div class="stat-card bg-white border border-slate-100 text-center"><i data-lucide="indian-rupee" class="w-4 h-4 text-red-500 mx-auto"></i><p class="t-lg font-black mt-0.5">${fmt(totalExp)}</p><p class="t-xs text-slate-400 nowrap">Expenses</p></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-c mb-cl">
+            <div class="bg-white card border border-slate-100 p-cl">
+                <h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Monthly Collections</h3>
+                <div class="chart-container" style="height:clamp(160px,30vw,240px)"><canvas id="chart-monthly"></canvas></div>
+            </div>
+            <div class="bg-white card border border-slate-100 p-cl">
+                <h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Loan Distribution</h3>
+                <div class="chart-container" style="height:clamp(160px,30vw,240px)"><canvas id="chart-loan-types"></canvas></div>
+            </div>
+        </div>
+
+        <div class="bg-white p-cl card border border-slate-100 mb-cl">
+            <h3 class="t-xs font-bold text-slate-400 mb-c uppercase">Quick Actions</h3>
+            <div class="grid grid-cols-4 md:grid-cols-8 gap-c">
+                ${[['borrower-create','user-plus','blue','Borrower'],['loan-create','briefcase','indigo','Loan'],['payment-entry','indian-rupee','emerald','Payment'],['property-create','home','amber','Property'],['agents','users','purple','Agents'],['expenses','trending-down','red','Expenses'],['reminders','bell','orange','Reminders'],['reports','bar-chart-3','cyan','Reports']].map(([t,i,c,l])=>`
+                <button onclick="switchTab('${t}')" class="flex flex-col items-center justify-center gap-cs py-2 bg-slate-50 card-sm t-xs font-bold hover:bg-slate-100 transition-all">
+                    <i data-lucide="${i}" class="w-4 h-4 text-${c}-600"></i><span class="nowrap">${l}</span>
+                </button>`).join('')}
+            </div>
+        </div>
+
+        ${overdues.length?`<div class="bg-white card border border-red-100 p-cl mb-cl">
+            <h3 class="t-xs font-bold text-red-600 mb-c uppercase flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> Overdue Alerts</h3>
+            <div class="space-y-1">${overdues.slice(0,4).map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId),s=getLoanStats(l.id);return`<div onclick="switchTab('loan-details','${l.id}')" class="p-c bg-red-50 card-sm flex justify-between items-center cursor-pointer hover:bg-red-100 transition-all"><div class="min-w-0 flex-1"><p class="t-sm font-bold text-red-900 truncate">${b?.name}</p><p class="t-xs text-red-600 nowrap">EMI: ${fmtF(s.emi)} · Bal: ${fmtF(Math.max(0,s.balance))}</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-red-400 flex-shrink-0"></i></div>`;}).join('')}</div>
+        </div>`:``}
+
+        <div class="bg-white card border border-slate-100 overflow-hidden mb-cl">
+            <div class="flex justify-between items-center p-cl pb-0"><h3 class="t-xs font-bold text-slate-400 uppercase">Recent Payments</h3><button onclick="switchTab('payments')" class="t-xs text-blue-600 font-bold">View All</button></div>
+            <div class="divide-y divide-slate-50">${[...db.payments].reverse().slice(0,5).map(p=>{const l=db.loans.find(x=>x.id===p.loanId),b=db.borrowers.find(x=>x.id===l?.borrowerId);return`<div class="p-c flex justify-between items-center"><div class="flex items-center gap-2 min-w-0 flex-1"><div class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0"><i data-lucide="arrow-down-left" class="w-3 h-3"></i></div><div class="min-w-0"><p class="t-sm font-bold truncate">${b?.name||'?'}</p><p class="t-xs text-slate-400 nowrap">${p.date} · ${p.method||'Cash'}</p></div></div><span class="t-sm font-black text-emerald-600 nowrap ml-2">+${fmtF(p.amount)}</span></div>`;}).join('')}</div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-c mb-cl">
+            <div class="stat-card bg-amber-50 border border-amber-100"><p class="t-xs font-bold text-amber-700 uppercase nowrap">Property Portfolio</p><h4 class="t-xl font-black text-amber-800 mt-0.5">${fmt(propValue)}</h4><p class="t-xs text-amber-600">${db.properties.filter(p=>p.status==='Available').length} available</p></div>
+            <div class="stat-card bg-purple-50 border border-purple-100"><p class="t-xs font-bold text-purple-700 uppercase nowrap">Pending Commissions</p><h4 class="t-xl font-black text-purple-800 mt-0.5">${fmt(pendingComm)}</h4><p class="t-xs text-purple-600">${db.commissions.filter(c=>c.status==='Pending').length} pending</p></div>
+            <div class="stat-card ${totalColl-totalExp>=0?'bg-emerald-50 border-emerald-100':'bg-red-50 border-red-100'} border"><p class="t-xs font-bold uppercase nowrap ${totalColl-totalExp>=0?'text-emerald-700':'text-red-700'}">Net Profit/Loss</p><h4 class="t-xl font-black mt-0.5 ${totalColl-totalExp>=0?'text-emerald-800':'text-red-800'}">${fmt(Math.abs(totalColl-totalExp))}</h4><p class="t-xs ${totalColl-totalExp>=0?'text-emerald-600':'text-red-600'}">${totalColl-totalExp>=0?'Profit':'Loss'}</p></div>
+        </div>`;
+    }
+
+    // ===== LOANS =====
+    if (tab === 'loans') {
+        return `
+        <div class="space-y-2">
+            ${db.loans.map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId),s=getLoanStats(l.id),pr=Math.min(100,(s.paid/s.totalPayable)*100).toFixed(0),od=getOverdueLoans().find(o=>o.id===l.id);return`
+            <div onclick="switchTab('loan-details','${l.id}')" class="p-c bg-white card border ${od?'border-red-200':'border-slate-100'} shadow-sm cursor-pointer hover:shadow-md transition-all">
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <div class="w-8 h-8 ${od?'bg-red-100 text-red-600':'bg-slate-100 text-slate-600'} rounded-lg flex items-center justify-center font-bold t-sm flex-shrink-0">${b?b.name.charAt(0):'?'}</div>
+                        <div class="min-w-0"><p class="t-sm font-bold truncate">${b?b.name:'Unknown'}</p><p class="t-xs text-slate-400 nowrap">${fmtF(l.amount)} · ${l.type||'Personal'} · EMI ${fmtF(s.emi)}</p></div>
+                    </div>
+                    <span class="badge flex-shrink-0 ml-1 ${od?'bg-red-50 text-red-600':l.status==='Active'?'bg-blue-50 text-blue-600':'bg-slate-100 text-slate-500'}">${od?'OVERDUE':l.status}</span>
+                </div>
+                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden mb-1"><div class="h-full ${od?'bg-red-500':'bg-emerald-500'}" style="width:${pr}%"></div></div>
+                <div class="flex justify-between t-xs font-bold text-slate-400"><span class="nowrap">Bal: ${fmtF(Math.max(0,s.balance))}</span><span>${pr}%</span></div>
+            </div>`;}).join('')}
+            ${!db.loans.length?'<p class="text-center text-slate-400 t-sm py-8">No loans yet.</p>':''}
+        </div>`;
+    }
+
+    // ===== PAYMENTS =====
+    if (tab === 'payments') {
+        const mColl = db.payments.filter(p=>p.date?.startsWith(td.substring(0,7))).reduce((s,p)=>s+p.amount,0);
+        return `
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-c mb-cl">
+            <div class="stat-card bg-emerald-50 border border-emerald-100"><p class="t-xs font-bold text-emerald-600 uppercase nowrap">This Month</p><h4 class="t-lg font-black text-emerald-700">${fmt(mColl)}</h4></div>
+            <div class="stat-card bg-blue-50 border border-blue-100"><p class="t-xs font-bold text-blue-600 uppercase nowrap">Total Received</p><h4 class="t-lg font-black text-blue-700">${fmt(db.payments.reduce((s,p)=>s+p.amount,0))}</h4></div>
+            <div class="stat-card bg-white border border-slate-100 hidden md:block"><p class="t-xs font-bold text-slate-400 uppercase nowrap">Transactions</p><h4 class="t-lg font-black">${db.payments.length}</h4></div>
+        </div>
+        <div class="bg-white card border border-slate-100 overflow-hidden divide-y divide-slate-50">
+            ${!db.payments.length?'<p class="text-center text-slate-400 t-xs py-6">No payments.</p>':''}
+            ${[...db.payments].reverse().map(p=>{const l=db.loans.find(x=>x.id===p.loanId),b=db.borrowers.find(x=>x.id===l?.borrowerId);return`
+            <div class="p-c flex justify-between items-center">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <div class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0"><i data-lucide="arrow-down-left" class="w-3 h-3"></i></div>
+                    <div class="min-w-0"><p class="t-sm font-bold truncate">${b?.name||'?'}</p><p class="t-xs text-slate-400 truncate">${p.date} · ${p.method||'Cash'} ${p.notes?'· '+p.notes:''}</p></div>
+                </div>
+                <div class="text-right flex-shrink-0 ml-1"><span class="t-sm font-black text-emerald-600 nowrap">+${fmtF(p.amount)}</span><p class="t-xs text-slate-400">${p.receiptNo||''}</p></div>
+            </div>`;}).join('')}
+        </div>`;
+    }
+
+    // ===== PROPERTIES =====
+    if (tab === 'properties') {
+        const tVal = db.properties.reduce((s,p)=>s+(p.price||0),0);
+        return `
+        <div class="stat-card bg-amber-500 text-white shadow-lg mb-cl"><p class="t-xs font-bold opacity-70 uppercase">Total Portfolio Value</p><h4 class="t-xl font-black mt-0.5">${fmt(tVal)}</h4><p class="t-xs opacity-60">${db.properties.length} properties</p></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-c">
+            ${db.properties.map(p=>{const tc=p.type==='Residential'?'prop-residential':p.type==='Commercial'?'prop-commercial':'prop-land';const sc=p.status==='Available'?'bg-emerald-50 text-emerald-600':p.status==='Sold'?'bg-slate-100 text-slate-500':p.status==='Mortgaged'?'bg-red-50 text-red-600':'bg-amber-50 text-amber-600';return`
+            <div onclick="switchTab('property-details','${p.id}')" class="p-c bg-white card border border-slate-100 shadow-sm ${tc} cursor-pointer hover:shadow-md transition-all">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="min-w-0 flex-1"><p class="t-sm font-bold truncate">${p.title}</p><p class="t-xs text-slate-400 truncate">${p.location}</p></div>
+                    <span class="badge ${sc} flex-shrink-0 ml-1">${p.status}</span>
+                </div>
+                <div class="flex justify-between items-center mt-1.5"><span class="t-sm font-black nowrap">${fmtF(p.price)}</span><span class="t-xs text-slate-400 nowrap">${p.area} ${p.areaUnit} · ${p.type}</span></div>
+            </div>`;}).join('')}
+            ${!db.properties.length?'<p class="text-center text-slate-400 t-sm py-8 col-span-2">No properties.</p>':''}
+        </div>`;
+    }
+
+    // ===== AGENTS =====
+    if (tab === 'agents') {
+        return `${backBtn('home')}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-c">
+            ${db.agents.map(a=>{const deals=db.loans.filter(l=>l.agentId===a.id).length;const tc=db.commissions.filter(c=>c.agentId===a.id).reduce((s,c)=>s+parseFloat(c.amount),0);return`
+            <div onclick="switchTab('agent-details','${a.id}')" class="p-c bg-white card border border-slate-100 shadow-sm flex items-center gap-2 cursor-pointer hover:shadow-md transition-all">
+                <div class="w-9 h-9 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center font-bold t-sm flex-shrink-0">${a.name.charAt(0)}</div>
+                <div class="min-w-0 flex-1"><p class="t-sm font-bold truncate">${a.name}</p><p class="t-xs text-slate-400 nowrap">${a.phone} · ${a.specialization} · ${a.area}</p></div>
+                <div class="text-right flex-shrink-0"><p class="t-xs font-bold text-purple-600 nowrap">${deals} deals</p><p class="t-xs text-slate-400 nowrap">${fmt(tc)} earned</p></div>
+            </div>`;}).join('')}
+            ${!db.agents.length?'<p class="text-center text-slate-400 t-sm py-8">No agents.</p>':''}
+        </div>`;
+    }
+
+    // ===== EXPENSES =====
+    if (tab === 'expenses') {
+        const tot=db.expenses.reduce((s,e)=>s+e.amount,0);
+        const cats=[...new Set(db.expenses.map(e=>e.category))];
+        return `${backBtn('home')}
+        <div class="stat-card bg-red-50 border border-red-100 mb-cl"><p class="t-xs font-bold text-red-600 uppercase">Total Expenses</p><h4 class="t-xl font-black text-red-700">${fmtF(tot)}</h4></div>
+        ${cats.length?`<div class="grid grid-cols-2 md:grid-cols-4 gap-c mb-cl">${cats.map(c=>{const a=db.expenses.filter(e=>e.category===c).reduce((s,e)=>s+e.amount,0);return`<div class="stat-card bg-white border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase truncate">${c}</p><p class="t-sm font-black">${fmtF(a)}</p></div>`;}).join('')}</div>`:''}
+        <div class="bg-white card border border-slate-100 overflow-hidden divide-y divide-slate-50">
+            ${[...db.expenses].reverse().map(e=>`<div class="p-c flex justify-between items-center"><div class="min-w-0 flex-1"><p class="t-sm font-bold truncate">${e.description||e.category}</p><p class="t-xs text-slate-400 truncate">${e.category} · ${e.date}</p></div><span class="t-sm font-black text-red-600 nowrap ml-1">-${fmtF(e.amount)}</span></div>`).join('')}
+        </div>`;
+    }
+
+    // ===== REMINDERS =====
+    if (tab === 'reminders') {
+        const pen=db.reminders.filter(r=>!r.done).sort((a,b)=>a.date.localeCompare(b.date));
+        const don=db.reminders.filter(r=>r.done);
+        return `${backBtn('home')}
+        <h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Pending (${pen.length})</h3>
+        <div class="space-y-1 mb-cl">${pen.map(r=>`
+            <div class="p-c bg-white card-sm border ${r.date<=td?'border-red-200':'border-slate-100'} flex items-center gap-2">
+                <button onclick="event.stopPropagation();toggleReminder('${r.id}')" class="w-5 h-5 border-2 ${r.priority==='High'?'border-red-400':'border-slate-300'} rounded flex-shrink-0 hover:bg-slate-50"></button>
+                <div class="min-w-0 flex-1"><p class="t-sm font-bold truncate">${r.title}</p><p class="t-xs text-slate-400 nowrap">${r.date} ${r.relatedTo?'· '+r.relatedTo:''}</p></div>
+                <span class="badge ${r.priority==='High'?'bg-red-50 text-red-600':r.priority==='Low'?'bg-slate-50 text-slate-500':'bg-amber-50 text-amber-600'} flex-shrink-0">${r.priority}</span>
+            </div>`).join('')}
+            ${!pen.length?'<p class="t-xs text-slate-400 text-center py-4">No pending reminders!</p>':''}
+        </div>
+        ${don.length?`<h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Done (${don.length})</h3><div class="space-y-1">${don.map(r=>`<div class="p-c bg-slate-50 card-sm border border-slate-100 flex items-center gap-2 opacity-50"><button onclick="event.stopPropagation();toggleReminder('${r.id}')" class="w-5 h-5 bg-emerald-500 border-2 border-emerald-500 rounded flex-shrink-0 flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-white"></i></button><p class="t-sm font-bold line-through truncate flex-1">${r.title}</p></div>`).join('')}</div>`:''}`;
+    }
+
+    // ===== REPORTS =====
+    if (tab === 'reports') {
+        const tL=db.loans.reduce((s,l)=>s+l.amount,0),tC=db.payments.reduce((s,p)=>s+p.amount,0),tE=db.expenses.reduce((s,e)=>s+e.amount,0),pf=tC-tE;
+        const mP=db.payments.filter(p=>p.date?.startsWith(td.substring(0,7)));
+        const avgLoan = db.loans.length ? (tL/db.loans.length) : 0;
+        const avgEMI = db.loans.length ? db.loans.reduce((s,l)=>{const st=getLoanStats(l.id);return s+parseFloat(st.emi);},0)/db.loans.length : 0;
+        return `${backBtn('home')}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-c mb-cl">
+            <div class="stat-card bg-blue-50 border border-blue-100"><p class="t-xs font-bold text-blue-600 uppercase nowrap">Disbursed</p><h4 class="t-lg font-black text-blue-700 mt-0.5">${fmt(tL)}</h4></div>
+            <div class="stat-card bg-emerald-50 border border-emerald-100"><p class="t-xs font-bold text-emerald-600 uppercase nowrap">Collected</p><h4 class="t-lg font-black text-emerald-700 mt-0.5">${fmt(tC)}</h4></div>
+            <div class="stat-card bg-red-50 border border-red-100"><p class="t-xs font-bold text-red-600 uppercase nowrap">Expenses</p><h4 class="t-lg font-black text-red-700 mt-0.5">${fmt(tE)}</h4></div>
+            <div class="stat-card ${pf>=0?'bg-emerald-50 border-emerald-100':'bg-red-50 border-red-100'} border"><p class="t-xs font-bold uppercase nowrap ${pf>=0?'text-emerald-600':'text-red-600'}">Net P/L</p><h4 class="t-lg font-black mt-0.5 ${pf>=0?'text-emerald-700':'text-red-700'}">${pf>=0?'+':''}${fmt(Math.abs(pf))}</h4></div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-c mb-cl">
+            <div class="stat-card bg-white border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Avg Loan</p><p class="t-sm font-black mt-0.5">${fmt(avgLoan)}</p></div>
+            <div class="stat-card bg-white border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Avg EMI</p><p class="t-sm font-black mt-0.5">${fmt(avgEMI)}</p></div>
+            <div class="stat-card bg-white border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Month Coll.</p><p class="t-sm font-black mt-0.5">${fmt(mP.reduce((s,p)=>s+p.amount,0))}</p></div>
+            <div class="stat-card bg-white border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Recovery %</p><p class="t-sm font-black mt-0.5">${tL?(tC/tL*100).toFixed(1)+'%':'0%'}</p></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-c mb-cl">
+            <div class="bg-white card border border-slate-100 p-cl"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Income vs Expenses</h3><div class="chart-container" style="height:clamp(180px,35vw,280px)"><canvas id="chart-income-expense"></canvas></div></div>
+            <div class="bg-white card border border-slate-100 p-cl"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Property Types</h3><div class="chart-container" style="height:clamp(180px,35vw,280px)"><canvas id="chart-property-types"></canvas></div></div>
+        </div>
+        <div class="bg-white card border border-slate-100 p-cl">
+            <h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Loan Type Breakdown</h3>
+            ${['Personal','Property','Business','Gold','Vehicle','Other'].map(t=>{const c=db.loans.filter(l=>(l.type||'Personal')===t);if(!c.length)return'';const tot=c.reduce((s,l)=>s+l.amount,0);const pct=tL?(tot/tL*100).toFixed(0):0;return`<div class="flex items-center gap-2 py-1.5 border-b border-slate-50 last:border-0"><span class="t-sm font-bold nowrap w-16">${t}</span><div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden"><div class="h-full bg-blue-500 rounded-full" style="width:${pct}%"></div></div><span class="t-xs text-slate-500 nowrap w-20 text-right">${c.length} · ${fmt(tot)}</span></div>`;}).join('')}
+        </div>`;
+    }
+
+    // ===== LOAN DETAILS =====
+    if (tab === 'loan-details') {
+        const l=db.loans.find(x=>x.id===state.activeLoanId);if(!l)return'<p>Not found</p>';
+        const b=db.borrowers.find(x=>x.id===l.borrowerId),s=getLoanStats(l.id),pr=Math.min(100,(s.paid/s.totalPayable)*100).toFixed(0),lp=db.payments.filter(p=>p.loanId===l.id).reverse(),ag=db.agents.find(a=>a.id===l.agentId);
+        return `
+        <div class="flex items-center gap-2 mb-cl"><button onclick="switchTab('loans')" class="p-1.5 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button><div class="min-w-0"><h2 class="t-lg font-bold truncate">${b?.name}</h2><p class="t-xs text-slate-400">${b?.phone} · ${l.type||'Personal'}</p></div></div>
+        <div class="stat-card bg-blue-600 text-white shadow-lg mb-cl">
+            <div class="flex justify-between items-start mb-2"><div><p class="t-xs font-bold opacity-70 uppercase nowrap">Balance</p><h4 class="t-2xl font-black mt-0.5 nowrap">${fmtF(Math.max(0,s.balance))}</h4></div><span class="badge bg-white/20 text-white">${l.status}</span></div>
+            <div class="w-full bg-blue-900/50 h-1.5 rounded-full overflow-hidden mb-1"><div class="h-full bg-white" style="width:${pr}%"></div></div>
+            <div class="flex justify-between t-xs font-bold opacity-80"><span>Paid: ${fmtF(s.paid)}</span><span>Total: ${fmtF(s.totalPayable)}</span></div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-c mb-cl">
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Principal</p><p class="t-sm font-bold">${fmtF(l.amount)}</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">EMI</p><p class="t-sm font-bold text-blue-600">${fmtF(s.emi)}</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Interest</p><p class="t-sm font-bold">${l.interest}% Flat</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Tenure</p><p class="t-sm font-bold">${l.tenure} Mo</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Start</p><p class="t-sm font-bold">${l.startDate}</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase nowrap">Payments</p><p class="t-sm font-bold">${lp.length} made</p></div>
+        </div>
+        ${l.collateral?`<div class="p-c bg-amber-50 card-sm border border-amber-100 mb-c"><p class="t-xs font-bold text-amber-600 uppercase">Collateral</p><p class="t-sm font-bold text-amber-900">${l.collateral}</p></div>`:''}
+        ${ag?`<div class="p-c bg-purple-50 card-sm border border-purple-100 mb-c"><p class="t-xs font-bold text-purple-600 uppercase">Agent</p><p class="t-sm font-bold text-purple-900">${ag.name} · ${ag.phone}</p></div>`:''}
+        ${l.guarantor?`<div class="p-c bg-slate-50 card-sm border border-slate-100 mb-c"><p class="t-xs font-bold text-slate-400 uppercase">Guarantor</p><p class="t-sm font-bold">${l.guarantor} ${l.guarantorPhone?'· '+l.guarantorPhone:''}</p></div>`:''}
+        <div class="flex gap-c mb-cl">
+            ${l.status==='Active'?`<button onclick="switchTab('payment-entry')" class="flex-1 btn-primary bg-emerald-600 text-white shadow-md text-center t-sm">Add Payment</button><button onclick="closeLoan('${l.id}')" class="flex-1 btn-primary bg-white border border-slate-200 text-slate-600 shadow-sm text-center t-sm">Close Loan</button>`:''}
+        </div>
+        <h3 class="t-xs font-bold text-slate-400 mb-c uppercase">History (${lp.length})</h3>
+        <div class="space-y-1">${lp.map(p=>`<div class="p-c bg-white card-sm border border-slate-100 flex justify-between items-center shadow-sm"><div class="min-w-0"><p class="t-sm font-bold">${p.date}</p><p class="t-xs text-slate-400 truncate">${p.method||''} ${p.notes?'· '+p.notes:''}</p></div><span class="t-sm font-bold text-emerald-600 nowrap ml-1">+${fmtF(p.amount)}</span></div>`).join('')}${!lp.length?'<p class="t-xs text-slate-400">No payments.</p>':''}</div>`;
+    }
+
+    // ===== PROPERTY DETAILS =====
+    if (tab === 'property-details') {
+        const p=db.properties.find(x=>x.id===state.activePropertyId);if(!p)return'Not found';
+        const ll=db.loans.filter(l=>l.propertyId===p.id);
+        return `
+        <div class="flex items-center gap-2 mb-cl"><button onclick="switchTab('properties')" class="p-1.5 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button><h2 class="t-lg font-bold truncate flex-1">${p.title}</h2></div>
+        <div class="stat-card bg-amber-500 text-white shadow-lg mb-cl"><p class="t-xs font-bold opacity-70 uppercase">Value</p><h4 class="t-2xl font-black mt-0.5">${fmtF(p.price)}</h4>${p.marketValue?`<p class="t-xs opacity-70 mt-0.5">Market: ${fmtF(p.marketValue)}</p>`:''}</div>
+        <div class="grid grid-cols-2 gap-c mb-cl">
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase">Type</p><p class="t-sm font-bold">${p.type}</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase">Area</p><p class="t-sm font-bold">${p.area} ${p.areaUnit}</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase">Status</p><p class="t-sm font-bold">${p.status}</p></div>
+            <div class="p-c bg-white card-sm border border-slate-100"><p class="t-xs text-slate-400 font-bold uppercase">Location</p><p class="t-sm font-bold truncate">${p.location}</p></div>
+        </div>
+        <div class="p-c bg-white card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Owner</p><p class="t-sm font-bold">${p.owner} ${p.ownerPhone?'· '+p.ownerPhone:''}</p></div>
+        ${p.registryNo?`<div class="p-c bg-white card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Registry</p><p class="t-sm font-bold">${p.registryNo}</p></div>`:''}
+        ${p.notes?`<div class="p-c bg-slate-50 card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Notes</p><p class="t-sm">${p.notes}</p></div>`:''}
+        ${p.photos && p.photos.length ? `<div class="mb-c mt-cl"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Photos</h3><div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">${p.photos.map(src=>`<img src="${src}" class="h-24 w-24 object-cover rounded-xl border border-slate-200 shadow-sm flex-shrink-0 cursor-pointer" onclick="window.open(this.src)">`).join('')}</div></div>` : ''}
+        ${ll.length?`<h3 class="t-xs font-bold text-slate-400 uppercase mb-c mt-cl">Linked Loans (${ll.length})</h3><div class="space-y-1">${ll.map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId);return`<div onclick="switchTab('loan-details','${l.id}')" class="p-c bg-white card-sm border border-slate-100 flex justify-between items-center cursor-pointer"><span class="t-sm font-bold truncate">${b?.name}</span><span class="t-xs text-blue-600 font-bold nowrap">${fmtF(l.amount)}</span></div>`;}).join('')}</div>`:''}`;
+    }
+
+    // ===== AGENT DETAILS =====
+    if (tab === 'agent-details') {
+        const a=db.agents.find(x=>x.id===state.activeAgentId);if(!a)return'Not found';
+        const d=db.loans.filter(l=>l.agentId===a.id),cm=db.commissions.filter(c=>c.agentId===a.id),tc=cm.reduce((s,c)=>s+parseFloat(c.amount),0);
+        return `
+        <div class="flex items-center gap-2 mb-cl"><button onclick="switchTab('agents')" class="p-1.5 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button><div class="min-w-0"><h2 class="t-lg font-bold truncate">${a.name}</h2><p class="t-xs text-slate-400">${a.phone} · ${a.specialization}</p></div></div>
+        <div class="grid grid-cols-2 gap-c mb-cl">
+            <div class="stat-card bg-purple-50 border border-purple-100"><p class="t-xs font-bold text-purple-600 uppercase">Deals</p><h4 class="t-xl font-black text-purple-700">${d.length}</h4></div>
+            <div class="stat-card bg-emerald-50 border border-emerald-100"><p class="t-xs font-bold text-emerald-600 uppercase nowrap">Commission</p><h4 class="t-xl font-black text-emerald-700">${fmt(tc)}</h4></div>
+        </div>
+        <div class="p-c bg-white card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Rate</p><p class="t-sm font-bold">${a.commissionRate}%</p></div>
+        <div class="p-c bg-white card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Area</p><p class="t-sm font-bold">${a.area||'N/A'}</p></div>
+        ${cm.length?`<h3 class="t-xs font-bold text-slate-400 uppercase mb-c mt-cl">Commission Log</h3><div class="space-y-1">${cm.map(c=>{const l=db.loans.find(x=>x.id===c.loanId),b=db.borrowers.find(x=>x.id===l?.borrowerId);return`<div class="p-c bg-white card-sm border border-slate-100 flex justify-between items-center"><div class="min-w-0"><p class="t-sm font-bold truncate">${b?.name||'?'}</p><p class="t-xs text-slate-400">${c.date}</p></div><div class="text-right"><span class="t-sm font-bold ${c.status==='Paid'?'text-emerald-600':'text-amber-600'}">${fmtF(c.amount)}</span><p class="t-xs text-slate-400">${c.status}</p></div></div>`;}).join('')}</div>`:''}
+        ${d.length?`<h3 class="t-xs font-bold text-slate-400 uppercase mb-c mt-cl">Deals (${d.length})</h3><div class="space-y-1">${d.map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId);return`<div onclick="switchTab('loan-details','${l.id}')" class="p-c bg-white card-sm border border-slate-100 flex justify-between items-center cursor-pointer"><span class="t-sm font-bold truncate">${b?.name}</span><span class="t-xs font-bold nowrap ${l.status==='Active'?'text-blue-600':'text-slate-400'}">${fmtF(l.amount)}</span></div>`;}).join('')}</div>`:''}`;
+    }
+
+    // ===== FORMS =====
+    if (tab === 'borrower-create') return `${backBtn('loans')}<form onsubmit="createBorrower(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Full Name *</label><input required name="name" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Phone *</label><input required name="phone" type="tel" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Aadhaar</label><input name="aadhaar" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">PAN</label><input name="pan" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Occupation</label><input name="occupation" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Credit Score</label><input name="creditScore" type="number" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Address</label><textarea name="address" rows="2" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></textarea></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Notes</label><input name="notes" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <button type="submit" class="w-full btn-primary bg-blue-600 text-white shadow-lg mt-2 t-base">Save Borrower</button></form>`;
+
+    if (tab === 'loan-create') return `${backBtn('loans')}<form onsubmit="createLoan(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Borrower *</label><select required name="borrowerId" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option value="">Select...</option>${db.borrowers.map(b=>`<option value="${b.id}">${b.name} (${b.phone})</option>`).join('')}</select></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Loan Type</label><select name="loanType" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Personal</option><option>Property</option><option>Business</option><option>Gold</option><option>Vehicle</option><option>Other</option></select></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Amount ₹ *</label><input required name="amount" type="number" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Interest % *</label><input required name="interest" type="number" step="0.1" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Tenure Mo *</label><input required name="tenure" type="number" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Start Date *</label><input required name="startDate" type="date" value="${td}" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Collateral</label><input name="collateral" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm" placeholder="e.g. Gold, Property deed"></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Guarantor</label><input name="guarantor" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Guarantor Ph</label><input name="guarantorPhone" type="tel" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Agent</label><select name="agentId" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option value="">None</option>${db.agents.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Property</label><select name="propertyId" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option value="">None</option>${db.properties.map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}</select></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Processing Fee ₹</label><input name="processingFee" type="number" value="0" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <button type="submit" class="w-full btn-primary bg-blue-600 text-white shadow-lg mt-2 t-base">Create Loan</button></form>`;
+
+    if (tab === 'payment-entry') return `${backBtn('payments')}<form onsubmit="addPayment(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Loan *</label><select required name="loanId" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option value="">Choose...</option>${db.loans.filter(l=>l.status==='Active').map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId),s=getLoanStats(l.id);return`<option value="${l.id}" ${state.activeLoanId===l.id?'selected':''}>${b?.name} (EMI: ${fmtF(s.emi)})</option>`;}).join('')}</select></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Amount ₹ *</label><input required name="amount" type="number" step="0.01" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Date *</label><input required name="date" type="date" value="${td}" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Method</label><select name="method" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Notes</label><input name="notes" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <button type="submit" class="w-full btn-primary bg-emerald-600 text-white shadow-lg shadow-emerald-200 mt-2 t-base">Confirm Payment</button></form>`;
+
+    if (tab === 'property-create') return `${backBtn('properties')}<form onsubmit="createProperty(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Photos</label><input type="file" name="photos" accept="image/*" multiple class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm t-sm"></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Title *</label><input required name="title" placeholder="e.g. Plot No 45" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Type *</label><select required name="type" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Residential</option><option>Commercial</option><option>Land</option><option>Agricultural</option><option>Industrial</option></select></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Status</label><select name="status" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Available</option><option>Sold</option><option>Mortgaged</option><option>Under Deal</option><option>Rented</option></select></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Location *</label><input required name="location" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div class="grid grid-cols-3 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Area *</label><input required name="area" type="number" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Unit</label><select name="areaUnit" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>sqft</option><option>sqyd</option><option>acre</option><option>bigha</option></select></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Price ₹ *</label><input required name="price" type="number" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Market Value ₹</label><input name="marketValue" type="number" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Owner *</label><input required name="owner" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Owner Ph</label><input name="ownerPhone" type="tel" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Registry No</label><input name="registryNo" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Notes</label><input name="notes" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <button type="submit" class="w-full btn-primary bg-amber-500 text-white shadow-lg mt-2 t-base">Save Property</button></form>`;
+
+    if (tab === 'agent-create') return `${backBtn('agents')}<form onsubmit="createAgent(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Name *</label><input required name="name" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Phone *</label><input required name="phone" type="tel" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Email</label><input name="email" type="email" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Commission %</label><input name="commissionRate" type="number" step="0.5" value="5" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Specialization</label><select name="specialization" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>General</option><option>Property</option><option>Loans</option><option>Gold</option></select></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Area</label><input name="area" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <button type="submit" class="w-full btn-primary bg-purple-600 text-white shadow-lg mt-2 t-base">Save Agent</button></form>`;
+
+    if (tab === 'expense-create') return `${backBtn('expenses')}<form onsubmit="addExpense(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Category *</label><select required name="category" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Office</option><option>Travel</option><option>Legal</option><option>Registration</option><option>Commission Paid</option><option>Salary</option><option>Miscellaneous</option></select></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Amount ₹ *</label><input required name="amount" type="number" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Description</label><input name="description" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Date *</label><input required name="date" type="date" value="${td}" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <button type="submit" class="w-full btn-primary bg-red-500 text-white shadow-lg mt-2 t-base">Save Expense</button></form>`;
+
+    if (tab === 'reminder-create') return `${backBtn('reminders')}<form onsubmit="addReminder(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Title *</label><input required name="title" placeholder="e.g. Follow up with Ravi" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Date *</label><input required name="date" type="date" value="${td}" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Priority</label><select name="priority" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Medium</option><option>High</option><option>Low</option></select></div></div>
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Related To</label><input name="relatedTo" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
+        <button type="submit" class="w-full btn-primary bg-orange-500 text-white shadow-lg mt-2 t-base">Save Reminder</button></form>`;
+
+    // ===== SETTINGS =====
+    if (tab === 'profile') return `
+        <div class="flex items-center gap-2 mb-cl"><button onclick="switchTab('home')" class="p-1.5 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button><h2 class="t-lg font-bold">Settings</h2></div>
+        <div class="text-center mt-cl">
+            <div class="w-16 h-16 card bg-white border border-slate-100 shadow-sm mx-auto mb-c overflow-hidden"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FinanceManager" class="w-full h-full"></div>
+            <h3 class="t-lg font-black">Finance Admin</h3><p class="text-slate-400 t-sm">License: FIN-99281</p>
+            <div class="mt-cl space-y-1 text-left max-w-md mx-auto">
+                <button onclick="exportData()" class="w-full p-c bg-white border border-slate-100 card-sm font-bold t-sm flex items-center justify-between shadow-sm hover:bg-slate-50"><span class="flex items-center gap-2 nowrap"><i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Export Backup</span><i data-lucide="chevron-right" class="w-4 h-4 text-blue-600"></i></button>
+                <button onclick="importData()" class="w-full p-c bg-white border border-slate-100 card-sm font-bold t-sm flex items-center justify-between shadow-sm hover:bg-slate-50"><span class="flex items-center gap-2 nowrap"><i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Import Data</span><i data-lucide="chevron-right" class="w-4 h-4 text-blue-600"></i></button>
+                <div class="pt-cl"><button onclick="if(confirm('Wipe ALL data permanently? Demo data will reload.')){localStorage.clear();location.reload();}" class="w-full p-c bg-red-50 text-red-600 card-sm font-bold t-sm shadow-sm flex items-center justify-center gap-2 hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i><span class="nowrap">Reset All Data</span></button></div>
+            </div>
+        </div>`;
+
+    return '<p class="text-center text-slate-400 py-8">Page not found.</p>';
+}
+
+function exportData() {
+    const d={borrowers:db.borrowers,loans:db.loans,payments:db.payments,properties:db.properties,agents:db.agents,expenses:db.expenses,commissions:db.commissions,reminders:db.reminders};
+    const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`omnifinance_${today()}.json`;a.click();URL.revokeObjectURL(u);
+}
+function importData() {
+    const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0],r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(confirm('Import data? This will MERGE.')){['borrowers','loans','payments','properties','agents','expenses','commissions','reminders'].forEach(k=>{if(d[k])db[k].push(...d[k]);});db.save();switchTab('home');alert('Imported!');}}catch(e){alert('Invalid file.');}};r.readAsText(f);};i.click();
+}
+
+lucide.createIcons();
+</script>
+</body>
+</html>
