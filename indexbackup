@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OmniFinance | CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        .app-container { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .hidden { display: none !important; }
+        
+        @keyframes fadeInUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-in { animation: fadeInUp 0.4s ease-out forwards; }
+        
+        .tab-active { color: #2563eb !important; }
+        .tab-active i { stroke-width: 2.5px; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .fab { position: fixed; bottom: 100px; right: 20px; z-index: 50; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .fab:hover { animation: pulse 0.5s ease-in-out; }
+        
+        .progress-bar { background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%); }
+        
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-slide { animation: slideUp 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <div id="app" class="app-container">
+        
+        <section id="view-auth" class="flex-1 flex flex-col items-center justify-center p-8 bg-white">
+            <div class="w-full max-w-sm space-y-8 animate-in">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-blue-100">
+                        <i data-lucide="landmark" class="w-8 h-8"></i>
+                    </div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">OmniFinance</h1>
+                    <p class="text-slate-400 mt-2 font-medium">Lending & Capital Management</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="email" placeholder="Email" class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-blue-600 transition-all">
+                    <button onclick="handleAuth()" id="login-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">Enter Workspace</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-main" class="hidden flex-1 flex flex-col overflow-hidden">
+            <header class="flex items-center justify-between px-6 py-5 bg-white border-b border-slate-50">
+                <div class="flex items-center gap-3">
+                    <button id="back-btn" onclick="goBack()" class="hidden w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Finance Module</p>
+                        <h2 id="app-title" class="text-lg font-bold">Dashboard</h2>
+                    </div>
+                </div>
+                <button onclick="switchTab('profile')" class="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-100">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FinanceManager">
+                </button>
+            </header>
+
+            <main id="main-content" class="flex-1 overflow-y-auto p-5 no-scrollbar"></main>
+
+            <div id="fab" class="fab hidden">
+                <button onclick="toggleFabMenu()" class="w-14 h-14 bg-blue-600 rounded-full shadow-lg shadow-blue-200 flex items-center justify-center text-white active:scale-95 transition-all">
+                    <i data-lucide="plus" class="w-6 h-6"></i>
+                </button>
+                <div id="fab-menu" class="hidden absolute bottom-16 right-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden min-w-[180px]">
+                    <button onclick="switchTab('borrower-create')" class="w-full p-4 text-left text-sm font-semibold flex items-center gap-3 hover:bg-slate-50">
+                        <i data-lucide="user-plus" class="w-4 h-4 text-blue-600"></i> Add Borrower
+                    </button>
+                    <button onclick="switchTab('loan-create')" class="w-full p-4 text-left text-sm font-semibold flex items-center gap-3 hover:bg-slate-50 border-t border-slate-50">
+                        <i data-lucide="file-plus" class="w-4 h-4 text-emerald-600"></i> Create Loan
+                    </button>
+                    <button onclick="switchTab('payment-entry')" class="w-full p-4 text-left text-sm font-semibold flex items-center gap-3 hover:bg-slate-50 border-t border-slate-50">
+                        <i data-lucide="credit-card" class="w-4 h-4 text-purple-600"></i> Add Payment
+                    </button>
+                </div>
+            </div>
+
+            <nav id="bottom-nav" class="flex justify-around items-center p-4 bg-white border-t border-slate-100 pb-8 md:pb-4">
+                <button id="tab-dashboard" onclick="switchTab('dashboard')" class="flex flex-col items-center gap-1 text-slate-300">
+                    <i data-lucide="layout-grid" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-bold">Dashboard</span>
+                </button>
+                <button id="tab-loans" onclick="switchTab('loans')" class="flex flex-col items-center gap-1 text-slate-300">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-bold">Loans</span>
+                </button>
+                <button id="tab-payments" onclick="switchTab('payments')" class="flex flex-col items-center gap-1 text-slate-300">
+                    <i data-lucide="banknote" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-bold">Payments</span>
+                </button>
+            </nav>
+        </section>
+
+        <!-- Receipt Modal -->
+        <div id="receipt-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
+            <div class="bg-white w-full max-w-md rounded-t-3xl p-6 modal-slide">
+                <div id="receipt-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let state = { 
+            tab: 'dashboard', 
+            prevTab: null,
+            selectedLoanId: null,
+            selectedBorrowerId: null
+        };
+
+        // Data Storage
+        let data = {
+            borrowers: [],
+            loans: [],
+            payments: []
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('omnifinance_data');
+            if (saved) {
+                data = JSON.parse(saved);
+            } else {
+                // Demo data
+                data = {
+                    borrowers: [
+                        { id: 'b1', name: 'Robert Fox', phone: '555-0101', address: '123 Main St' },
+                        { id: 'b2', name: 'Darlene Robertson', phone: '555-0102', address: '456 Oak Ave' },
+                        { id: 'b3', name: 'Jerome Bell', phone: '555-0103', address: '789 Pine Rd' }
+                    ],
+                    loans: [
+                        { id: 'l1', borrowerId: 'b1', amount: 10000, interest: 12, tenure: 12, emi: 888.49, startDate: '2024-01-15', balance: 7500, status: 'active', nextEmiDate: '2025-01-15' },
+                        { id: 'l2', borrowerId: 'b2', amount: 5000, interest: 10, tenure: 6, emi: 858.18, startDate: '2024-06-01', balance: 2500, status: 'active', nextEmiDate: '2025-01-01' },
+                        { id: 'l3', borrowerId: 'b3', amount: 15000, interest: 15, tenure: 24, emi: 726.55, startDate: '2024-03-10', balance: 12000, status: 'overdue', nextEmiDate: '2024-12-10' }
+                    ],
+                    payments: [
+                        { id: 'p1', loanId: 'l1', amount: 888.49, date: '2025-01-10', notes: 'January EMI' },
+                        { id: 'p2', loanId: 'l2', amount: 858.18, date: '2025-01-08', notes: 'Regular payment' },
+                        { id: 'p3', loanId: 'l1', amount: 888.49, date: '2024-12-15', notes: 'December EMI' }
+                    ]
+                };
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('omnifinance_data', JSON.stringify(data));
+        }
+
+        // Utility Functions
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function formatCurrency(amount) {
+            return '$' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        // Core Business Functions
+        function calculateEMI(principal, rate, tenure) {
+            const monthlyRate = rate / 12 / 100;
+            if (monthlyRate === 0) return principal / tenure;
+            const emi = principal * monthlyRate * Math.pow(1 + monthlyRate, tenure) / (Math.pow(1 + monthlyRate, tenure) - 1);
+            return Math.round(emi * 100) / 100;
+        }
+
+        function createBorrower(name, phone, address) {
+            const borrower = { id: generateId(), name, phone, address };
+            data.borrowers.push(borrower);
+            saveData();
+            return borrower;
+        }
+
+        function createLoan(borrowerId, amount, interest, tenure, startDate) {
+            const emi = calculateEMI(amount, interest, tenure);
+            const nextDate = new Date(startDate);
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            
+            const loan = {
+                id: generateId(),
+                borrowerId,
+                amount: Number(amount),
+                interest: Number(interest),
+                tenure: Number(tenure),
+                emi,
+                startDate,
+                balance: Number(amount),
+                status: 'active',
+                nextEmiDate: nextDate.toISOString().split('T')[0]
+            };
+            data.loans.push(loan);
+            saveData();
+            return loan;
+        }
+
+        function addPayment(loanId, amount, date, notes = '') {
+            const payment = { id: generateId(), loanId, amount: Number(amount), date, notes };
+            data.payments.push(payment);
+            
+            const loan = data.loans.find(l => l.id === loanId);
+            if (loan) {
+                loan.balance = Math.max(0, loan.balance - Number(amount));
+                if (loan.balance <= 0) {
+                    loan.status = 'closed';
+                } else {
+                    const nextDate = new Date(loan.nextEmiDate);
+                    nextDate.setMonth(nextDate.getMonth() + 1);
+                    loan.nextEmiDate = nextDate.toISOString().split('T')[0];
+                    loan.status = 'active';
+                }
+            }
+            saveData();
+            return payment;
+        }
+
+        function getBorrower(id) {
+            return data.borrowers.find(b => b.id === id);
+        }
+
+        function getLoan(id) {
+            return data.loans.find(l => l.id === id);
+        }
+
+        function getLoanPayments(loanId) {
+            return data.payments.filter(p => p.loanId === loanId).sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        function getBorrowerLoans(borrowerId) {
+            return data.loans.filter(l => l.borrowerId === borrowerId);
+        }
+
+        function getTotalLent() {
+            return data.loans.reduce((sum, l) => sum + l.amount, 0);
+        }
+
+        function getTotalOutstanding() {
+            return data.loans.filter(l => l.status !== 'closed').reduce((sum, l) => sum + l.balance, 0);
+        }
+
+        function getTodayCollection() {
+            const today = new Date().toISOString().split('T')[0];
+            return data.payments.filter(p => p.date === today).reduce((sum, p) => sum + p.amount, 0);
+        }
+
+        function getOverdueLoans() {
+            const today = new Date();
+            return data.loans.filter(l => {
+                if (l.status === 'closed') return false;
+                const nextEmi = new Date(l.nextEmiDate);
+                return nextEmi < today;
+            });
+        }
+
+        function getOverdueAmount() {
+            return getOverdueLoans().reduce((sum, l) => sum + l.emi, 0);
+        }
+
+        function getOverdueDays(loan) {
+            const today = new Date();
+            const nextEmi = new Date(loan.nextEmiDate);
+            const diff = Math.floor((today - nextEmi) / (1000 * 60 * 60 * 24));
+            return Math.max(0, diff);
+        }
+
+        function updateOverdueStatus() {
+            const today = new Date();
+            data.loans.forEach(loan => {
+                if (loan.status === 'closed') return;
+                const nextEmi = new Date(loan.nextEmiDate);
+                if (nextEmi < today) {
+                    loan.status = 'overdue';
+                }
+            });
+            saveData();
+        }
+
+        function closeLoan(loanId) {
+            const loan = data.loans.find(l => l.id === loanId);
+            if (loan) {
+                loan.status = 'closed';
+                loan.balance = 0;
+                saveData();
+            }
+        }
+
+        // View Management
+        function showView(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`view-${id}`).classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function handleAuth() {
+            const btn = document.getElementById('login-btn');
+            btn.innerText = 'Accessing Records...';
+            setTimeout(() => {
+                loadData();
+                updateOverdueStatus();
+                showView('main');
+                switchTab('dashboard');
+            }, 800);
+        }
+
+        function goBack() {
+            if (state.prevTab) {
+                switchTab(state.prevTab);
+            } else {
+                switchTab('dashboard');
+            }
+        }
+
+        function toggleFabMenu() {
+            const menu = document.getElementById('fab-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function showReceipt(payment, loan, borrower) {
+            const modal = document.getElementById('receipt-modal');
+            const content = document.getElementById('receipt-content');
+            content.innerHTML = `
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Payment Successful</h3>
+                    <p class="text-slate-400 text-sm mt-1">Transaction completed</p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-4 space-y-3 mb-6">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-400">Amount</span>
+                        <span class="font-bold">${formatCurrency(payment.amount)}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-400">Borrower</span>
+                        <span class="font-semibold">${borrower.name}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-400">Date</span>
+                        <span class="font-semibold">${formatDate(payment.date)}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-400">Remaining Balance</span>
+                        <span class="font-bold text-blue-600">${formatCurrency(loan.balance)}</span>
+                    </div>
+                </div>
+                <button onclick="closeReceipt()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold">Done</button>
+            `;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeReceipt() {
+            document.getElementById('receipt-modal').classList.add('hidden');
+        }
+
+        function switchTab(tab) {
+            document.getElementById('fab-menu')?.classList.add('hidden');
+            
+            const isSubPage = ['loan-create', 'loan-details', 'borrower-create', 'payment-entry', 'payment-history', 'profile'].includes(tab);
+            
+            if (!isSubPage) {
+                state.prevTab = null;
+            } else if (!['loan-create', 'loan-details', 'borrower-create', 'payment-entry', 'payment-history', 'profile'].includes(state.tab)) {
+                state.prevTab = state.tab;
+            }
+            
+            state.tab = tab;
+            const container = document.getElementById('main-content');
+            const nav = document.getElementById('bottom-nav');
+            const title = document.getElementById('app-title');
+            const backBtn = document.getElementById('back-btn');
+            const fab = document.getElementById('fab');
+            
+            // Show/hide back button
+            if (isSubPage) {
+                backBtn.classList.remove('hidden');
+                backBtn.classList.add('flex');
+            } else {
+                backBtn.classList.add('hidden');
+                backBtn.classList.remove('flex');
+            }
+
+            // FAB visibility
+            if (['dashboard', 'loans', 'payments'].includes(tab)) {
+                fab.classList.remove('hidden');
+            } else {
+                fab.classList.add('hidden');
+            }
+
+            // Navigation handling
+            if (isSubPage) {
+                nav.classList.add('hidden');
+            } else {
+                nav.classList.remove('hidden');
+                document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
+                const activeTab = document.getElementById(`tab-${tab}`);
+                if (activeTab) activeTab.classList.add('tab-active');
+            }
+
+            // Set titles
+            const titles = {
+                'dashboard': 'Dashboard',
+                'loans': 'Loans',
+                'payments': 'Payments',
+                'loan-create': 'New Loan',
+                'loan-details': 'Loan Details',
+                'borrower-create': 'New Borrower',
+                'payment-entry': 'Add Payment',
+                'payment-history': 'Payment History',
+                'profile': 'Settings'
+            };
+            title.innerText = titles[tab] || 'Dashboard';
+
+            container.innerHTML = `<div class="animate-in">${renderPage(tab)}</div>`;
+            lucide.createIcons();
+        }
+
+        function renderPage(tab) {
+            switch(tab) {
+                case 'dashboard': return renderDashboard();
+                case 'loans': return renderLoans();
+                case 'loan-create': return renderLoanCreate();
+                case 'loan-details': return renderLoanDetails();
+                case 'borrower-create': return renderBorrowerCreate();
+                case 'payments': return renderPayments();
+                case 'payment-entry': return renderPaymentEntry();
+                case 'payment-history': return renderPaymentHistory();
+                case 'profile': return renderProfile();
+                default: return renderDashboard();
+            }
+        }
+
+        function renderDashboard() {
+            const overdueLoans = getOverdueLoans();
+            const recentPayments = data.payments.slice(-3).reverse();
+            const recentLoans = data.loans.slice(-2).reverse();
+
+            return `
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-blue-600 text-white p-5 rounded-3xl shadow-lg shadow-blue-100">
+                        <p class="text-[10px] font-bold opacity-70 uppercase">Total Lent</p>
+                        <h4 class="text-2xl font-black mt-1">${formatCurrency(getTotalLent())}</h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Outstanding</p>
+                        <h4 class="text-2xl font-black mt-1">${formatCurrency(getTotalOutstanding())}</h4>
+                    </div>
+                    <div class="bg-emerald-50 p-5 rounded-3xl border border-emerald-100">
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase">Today's Collection</p>
+                        <h4 class="text-2xl font-black mt-1 text-emerald-700">${formatCurrency(getTodayCollection())}</h4>
+                    </div>
+                    <div class="bg-red-50 p-5 rounded-3xl border border-red-100">
+                        <p class="text-[10px] text-red-600 font-bold uppercase">Overdue</p>
+                        <h4 class="text-2xl font-black mt-1 text-red-700">${formatCurrency(getOverdueAmount())}</h4>
+                    </div>
+                </div>
+
+                ${overdueLoans.length > 0 ? `
+                <div class="p-4 bg-red-50 border border-red-100 rounded-2xl mb-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm text-red-700">${overdueLoans.length} Overdue Loan${overdueLoans.length > 1 ? 's' : ''}</p>
+                        <p class="text-[10px] text-red-600">Immediate attention required</p>
+                    </div>
+                    <button onclick="switchTab('payments')" class="text-red-600">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                ` : ''}
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 mb-4">
+                    <h3 class="text-sm font-bold text-slate-400 mb-4">Quick Actions</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="switchTab('borrower-create')" class="flex flex-col items-center gap-2 py-4 bg-slate-50 rounded-2xl">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-blue-600"></i>
+                            <span class="font-bold text-[10px]">Borrower</span>
+                        </button>
+                        <button onclick="switchTab('loan-create')" class="flex flex-col items-center gap-2 py-4 bg-slate-50 rounded-2xl">
+                            <i data-lucide="file-plus" class="w-5 h-5 text-emerald-600"></i>
+                            <span class="font-bold text-[10px]">Loan</span>
+                        </button>
+                        <button onclick="switchTab('payment-entry')" class="flex flex-col items-center gap-2 py-4 bg-slate-50 rounded-2xl">
+                            <i data-lucide="credit-card" class="w-5 h-5 text-purple-600"></i>
+                            <span class="font-bold text-[10px]">Payment</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-3 mb-4">
+                    <h3 class="text-sm font-bold text-slate-400 px-1">Recent Payments</h3>
+                    <div class="bg-white rounded-3xl border border-slate-100 divide-y divide-slate-50 overflow-hidden">
+                        ${recentPayments.length === 0 ? `
+                            <div class="p-6 text-center text-slate-400 text-sm">No payments yet</div>
+                        ` : recentPayments.map(p => {
+                            const loan = getLoan(p.loanId);
+                            const borrower = loan ? getBorrower(loan.borrowerId) : null;
+                            return `
+                                <div class="p-4 flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold text-xs">
+                                            ${borrower ? getInitials(borrower.name) : '??'}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-sm">${borrower?.name || 'Unknown'}</p>
+                                            <p class="text-[10px] text-slate-400">${formatDate(p.date)}</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-emerald-600">+${formatCurrency(p.amount)}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-slate-400 px-1">Latest Loans</h3>
+                    <div class="bg-white rounded-3xl border border-slate-100 divide-y divide-slate-50 overflow-hidden">
+                        ${recentLoans.length === 0 ? `
+                            <div class="p-6 text-center text-slate-400 text-sm">No loans yet</div>
+                        ` : recentLoans.map(l => {
+                            const borrower = getBorrower(l.borrowerId);
+                            return `
+                                <div onclick="state.selectedLoanId='${l.id}';switchTab('loan-details')" class="p-4 flex justify-between items-center cursor-pointer active:bg-slate-50">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs">
+                                            ${borrower ? getInitials(borrower.name) : '??'}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-sm">${borrower?.name || 'Unknown'}</p>
+                                            <p class="text-[10px] text-slate-400">${formatCurrency(l.amount)} • ${l.tenure}mo</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${l.status === 'active' ? 'text-blue-600 bg-blue-50' : l.status === 'overdue' ? 'text-red-600 bg-red-50' : 'text-slate-400 bg-slate-50'}">${l.status.toUpperCase()}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLoans() {
+            const searchHtml = `
+                <div class="relative mb-4">
+                    <i data-lucide="search" class="absolute left-4 top-4 w-4 h-4 text-slate-300"></i>
+                    <input type="text" id="loan-search" oninput="filterLoans()" placeholder="Search borrowers or loans..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-100 text-sm outline-none">
+                </div>
+            `;
+
+            const tabs = `
+                <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+                    <button onclick="filterLoanStatus('all')" class="loan-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white" data-status="all">All</button>
+                    <button onclick="filterLoanStatus('active')" class="loan-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600" data-status="active">Active</button>
+                    <button onclick="filterLoanStatus('overdue')" class="loan-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600" data-status="overdue">Overdue</button>
+                    <button onclick="filterLoanStatus('closed')" class="loan-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600" data-status="closed">Closed</button>
+                </div>
+            `;
+
+            const loansHtml = data.loans.map(l => {
+                const borrower = getBorrower(l.borrowerId);
+                const progress = ((l.amount - l.balance) / l.amount) * 100;
+                return `
+                    <div onclick="state.selectedLoanId='${l.id}';switchTab('loan-details')" class="loan-item p-4 bg-white rounded-2xl border border-slate-100 mb-3 cursor-pointer active:bg-slate-50" data-status="${l.status}" data-name="${borrower?.name?.toLowerCase() || ''}">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-sm">
+                                    ${borrower ? getInitials(borrower.name) : '??'}
+                                </div>
+                                <div>
+                                    <p class="font-bold">${borrower?.name || 'Unknown'}</p>
+                                    <p class="text-[10px] text-slate-400">${formatCurrency(l.amount)} @ ${l.interest}% • ${l.tenure}mo</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${l.status === 'active' ? 'text-blue-600 bg-blue-50' : l.status === 'overdue' ? 'text-red-600 bg-red-50' : 'text-emerald-600 bg-emerald-50'}">${l.status.toUpperCase()}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs mb-2">
+                            <span class="text-slate-400">Balance: <span class="font-bold text-slate-700">${formatCurrency(l.balance)}</span></span>
+                            <span class="text-slate-400">EMI: <span class="font-bold text-slate-700">${formatCurrency(l.emi)}</span></span>
+                        </div>
+                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="progress-bar h-full rounded-full" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-[10px] text-slate-400">
+                            <span>Next EMI: ${formatDate(l.nextEmiDate)}</span>
+                            <span>${Math.round(progress)}% paid</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            return searchHtml + tabs + `<div id="loans-list">${loansHtml || '<div class="text-center text-slate-400 py-10">No loans yet. Create your first loan!</div>'}</div>`;
+        }
+
+        function filterLoans() {
+            const query = document.getElementById('loan-search').value.toLowerCase();
+            document.querySelectorAll('.loan-item').forEach(item => {
+                const name = item.dataset.name;
+                item.style.display = name.includes(query) ? 'block' : 'none';
+            });
+        }
+
+        function filterLoanStatus(status) {
+            document.querySelectorAll('.loan-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            document.querySelector(`[data-status="${status}"]`).classList.remove('bg-slate-100', 'text-slate-600');
+            document.querySelector(`[data-status="${status}"]`).classList.add('bg-blue-600', 'text-white');
+
+            document.querySelectorAll('.loan-item').forEach(item => {
+                item.style.display = (status === 'all' || item.dataset.status === status) ? 'block' : 'none';
+            });
+        }
+
+        function renderLoanCreate() {
+            const borrowerOptions = data.borrowers.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+            
+            return `
+                <div class="bg-white rounded-3xl border border-slate-100 p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Borrower</label>
+                            <select id="loan-borrower" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                                <option value="">Select Borrower</option>
+                                ${borrowerOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Loan Amount</label>
+                            <input type="number" id="loan-amount" placeholder="Enter amount" oninput="calculatePreview()" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Interest Rate (%)</label>
+                                <input type="number" id="loan-interest" placeholder="12" value="12" oninput="calculatePreview()" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Tenure (Months)</label>
+                                <input type="number" id="loan-tenure" placeholder="12" value="12" oninput="calculatePreview()" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Start Date</label>
+                            <input type="date" id="loan-start" value="${new Date().toISOString().split('T')[0]}" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        </div>
+
+                        <div id="emi-preview" class="bg-blue-50 rounded-2xl p-4 hidden">
+                            <p class="text-xs font-bold text-blue-600 uppercase mb-2">Calculated EMI</p>
+                            <p id="emi-amount" class="text-2xl font-black text-blue-700">$0</p>
+                            <p id="total-payable" class="text-xs text-blue-600 mt-1">Total Payable: $0</p>
+                        </div>
+
+                        <button onclick="submitLoan()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-95 transition-all">Create Loan</button>
+                        <button onclick="switchTab('borrower-create')" class="w-full py-3 text-blue-600 text-sm font-bold">+ Add New Borrower First</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculatePreview() {
+            const amount = Number(document.getElementById('loan-amount').value);
+            const interest = Number(document.getElementById('loan-interest').value);
+            const tenure = Number(document.getElementById('loan-tenure').value);
+            
+            if (amount && interest && tenure) {
+                const emi = calculateEMI(amount, interest, tenure);
+                const total = emi * tenure;
+                document.getElementById('emi-preview').classList.remove('hidden');
+                document.getElementById('emi-amount').textContent = formatCurrency(emi);
+                document.getElementById('total-payable').textContent = `Total Payable: ${formatCurrency(total)}`;
+            }
+        }
+
+        function submitLoan() {
+            const borrowerId = document.getElementById('loan-borrower').value;
+            const amount = document.getElementById('loan-amount').value;
+            const interest = document.getElementById('loan-interest').value;
+            const tenure = document.getElementById('loan-tenure').value;
+            const startDate = document.getElementById('loan-start').value;
+
+            if (!borrowerId || !amount || !interest || !tenure || !startDate) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            createLoan(borrowerId, amount, interest, tenure, startDate);
+            switchTab('loans');
+        }
+
+        function renderLoanDetails() {
+            const loan = getLoan(state.selectedLoanId);
+            if (!loan) return '<div class="text-center py-10 text-slate-400">Loan not found</div>';
+            
+            const borrower = getBorrower(loan.borrowerId);
+            const payments = getLoanPayments(loan.id);
+            const progress = ((loan.amount - loan.balance) / loan.amount) * 100;
+            const totalPaid = loan.amount - loan.balance;
+
+            return `
+                <div class="bg-white rounded-3xl border border-slate-100 p-6 mb-4">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-xl">
+                            ${borrower ? getInitials(borrower.name) : '??'}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">${borrower?.name || 'Unknown'}</h3>
+                            <p class="text-sm text-slate-400">${borrower?.phone || ''}</p>
+                            <span class="text-[10px] font-bold px-2 py-1 rounded-lg mt-1 inline-block ${loan.status === 'active' ? 'text-blue-600 bg-blue-50' : loan.status === 'overdue' ? 'text-red-600 bg-red-50' : 'text-emerald-600 bg-emerald-50'}">${loan.status.toUpperCase()}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-slate-50 rounded-2xl p-4">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Loan Amount</p>
+                            <p class="text-lg font-bold">${formatCurrency(loan.amount)}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-2xl p-4">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Monthly EMI</p>
+                            <p class="text-lg font-bold">${formatCurrency(loan.emi)}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-2xl p-4">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Interest Rate</p>
+                            <p class="text-lg font-bold">${loan.interest}%</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-2xl p-4">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Tenure</p>
+                            <p class="text-lg font-bold">${loan.tenure} months</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-bold">Repayment Progress</span>
+                            <span class="text-sm font-bold text-emerald-600">${Math.round(progress)}%</span>
+                        </div>
+                        <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="progress-bar h-full rounded-full transition-all" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-xs text-slate-400">
+                            <span>Paid: ${formatCurrency(totalPaid)}</span>
+                            <span>Balance: ${formatCurrency(loan.balance)}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="state.selectedLoanId='${loan.id}';switchTab('payment-entry')" class="py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add Payment
+                        </button>
+                        <button onclick="confirmCloseLoan('${loan.id}')" class="py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm active:scale-95 transition-all ${loan.status === 'closed' ? 'opacity-50 pointer-events-none' : ''}">Close Loan</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-100 p-6">
+                    <h3 class="font-bold mb-4">Payment History</h3>
+                    <div class="space-y-3">
+                        ${payments.length === 0 ? '<p class="text-slate-400 text-sm text-center py-4">No payments recorded</p>' : 
+                        payments.map(p => `
+                            <div class="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
+                                <div>
+                                    <p class="font-bold text-sm">${formatCurrency(p.amount)}</p>
+                                    <p class="text-[10px] text-slate-400">${p.notes || 'Payment'}</p>
+                                </div>
+                                <span class="text-xs text-slate-400">${formatDate(p.date)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function confirmCloseLoan(loanId) {
+            if (confirm('Are you sure you want to close this loan? This will mark the balance as cleared.')) {
+                closeLoan(loanId);
+                switchTab('loan-details');
+            }
+        }
+
+        function renderBorrowerCreate() {
+            return `
+                <div class="bg-white rounded-3xl border border-slate-100 p-6">
+                    <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="user-plus" class="w-10 h-10 text-blue-600"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Full Name</label>
+                            <input type="text" id="borrower-name" placeholder="Enter full name" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Phone Number</label>
+                            <input type="tel" id="borrower-phone" placeholder="Enter phone number" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Address</label>
+                            <textarea id="borrower-address" placeholder="Enter address" rows="3" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none resize-none"></textarea>
+                        </div>
+                        <button onclick="submitBorrower()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-95 transition-all">Add Borrower</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function submitBorrower() {
+            const name = document.getElementById('borrower-name').value.trim();
+            const phone = document.getElementById('borrower-phone').value.trim();
+            const address = document.getElementById('borrower-address').value.trim();
+
+            if (!name) {
+                alert('Please enter borrower name');
+                return;
+            }
+
+            createBorrower(name, phone, address);
+            
+            if (state.prevTab === 'loan-create') {
+                switchTab('loan-create');
+            } else {
+                switchTab('loans');
+            }
+        }
+
+        function renderPayments() {
+            const overdueLoans = getOverdueLoans();
+            
+            return `
+                <div class="flex gap-2 mb-4">
+                    <button onclick="switchTab('payment-entry')" class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Payment
+                    </button>
+                    <button onclick="switchTab('payment-history')" class="flex-1 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4"></i> History
+                    </button>
+                </div>
+
+                ${overdueLoans.length > 0 ? `
+                <div class="mb-4">
+                    <h3 class="text-sm font-bold text-red-600 mb-3 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i> Pending EMIs (${overdueLoans.length})
+                    </h3>
+                    <div class="space-y-3">
+                        ${overdueLoans.map(l => {
+                            const borrower = getBorrower(l.borrowerId);
+                            const days = getOverdueDays(l);
+                            return `
+                                <div class="p-4 bg-red-50 border border-red-100 rounded-2xl">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center font-bold text-xs">
+                                                ${borrower ? getInitials(borrower.name) : '??'}
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-sm">${borrower?.name || 'Unknown'}</p>
+                                                <p class="text-[10px] text-red-600">${days} days overdue</p>
+                                            </div>
+                                        </div>
+                                        <span class="font-bold text-red-700">${formatCurrency(l.emi)}</span>
+                                    </div>
+                                    <button onclick="state.selectedLoanId='${l.id}';switchTab('payment-entry')" class="w-full py-2 bg-red-600 text-white rounded-xl text-xs font-bold mt-2">Collect Payment</button>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                ` : `
+                <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center mb-4">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="check-circle" class="w-6 h-6 text-emerald-600"></i>
+                    </div>
+                    <p class="font-bold text-emerald-700">All Caught Up!</p>
+                    <p class="text-xs text-emerald-600 mt-1">No pending EMIs at the moment</p>
+                </div>
+                `}
+
+                <div>
+                    <h3 class="text-sm font-bold text-slate-400 mb-3">Upcoming EMIs</h3>
+                    <div class="space-y-3">
+                        ${data.loans.filter(l => l.status === 'active').slice(0, 5).map(l => {
+                            const borrower = getBorrower(l.borrowerId);
+                            return `
+                                <div class="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs">
+                                            ${borrower ? getInitials(borrower.name) : '??'}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-sm">${borrower?.name || 'Unknown'}</p>
+                                            <p class="text-[10px] text-slate-400">Due: ${formatDate(l.nextEmiDate)}</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-slate-700">${formatCurrency(l.emi)}</span>
+                                </div>
+                            `;
+                        }).join('') || '<p class="text-center text-slate-400 text-sm py-4">No active loans</p>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPaymentEntry() {
+            const activeLoans = data.loans.filter(l => l.status !== 'closed');
+            const selectedLoan = state.selectedLoanId ? getLoan(state.selectedLoanId) : null;
+
+            return `
+                <div class="bg-white rounded-3xl border border-slate-100 p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Select Loan</label>
+                            <select id="payment-loan" onchange="updatePaymentPreview()" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                                <option value="">Select a loan</option>
+                                ${activeLoans.map(l => {
+                                    const borrower = getBorrower(l.borrowerId);
+                                    return `<option value="${l.id}" ${selectedLoan?.id === l.id ? 'selected' : ''}>${borrower?.name || 'Unknown'} - ${formatCurrency(l.balance)} remaining</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+
+                        <div id="payment-info" class="${selectedLoan ? '' : 'hidden'}">
+                            <div class="bg-blue-50 rounded-2xl p-4 mb-4">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-blue-600">EMI Amount</span>
+                                    <span id="suggested-emi" class="font-bold text-blue-700">${selectedLoan ? formatCurrency(selectedLoan.emi) : '$0'}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-blue-600">Outstanding</span>
+                                    <span id="outstanding-amt" class="font-bold text-blue-700">${selectedLoan ? formatCurrency(selectedLoan.balance) : '$0'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Payment Amount</label>
+                            <input type="number" id="payment-amount" placeholder="Enter amount" value="${selectedLoan ? selectedLoan.emi : ''}" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Payment Date</label>
+                            <input type="date" id="payment-date" value="${new Date().toISOString().split('T')[0]}" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Notes (Optional)</label>
+                            <input type="text" id="payment-notes" placeholder="e.g., January EMI" class="w-full px-4 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        </div>
+                        <button onclick="submitPayment()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="check" class="w-5 h-5"></i> Record Payment
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updatePaymentPreview() {
+            const loanId = document.getElementById('payment-loan').value;
+            const infoDiv = document.getElementById('payment-info');
+            
+            if (loanId) {
+                const loan = getLoan(loanId);
+                infoDiv.classList.remove('hidden');
+                document.getElementById('suggested-emi').textContent = formatCurrency(loan.emi);
+                document.getElementById('outstanding-amt').textContent = formatCurrency(loan.balance);
+                document.getElementById('payment-amount').value = loan.emi;
+            } else {
+                infoDiv.classList.add('hidden');
+            }
+        }
+
+        function submitPayment() {
+            const loanId = document.getElementById('payment-loan').value;
+            const amount = document.getElementById('payment-amount').value;
+            const date = document.getElementById('payment-date').value;
+            const notes = document.getElementById('payment-notes').value;
+
+            if (!loanId || !amount || !date) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            const payment = addPayment(loanId, amount, date, notes);
+            const loan = getLoan(loanId);
+            const borrower = getBorrower(loan.borrowerId);
+            
+            showReceipt(payment, loan, borrower);
+            state.selectedLoanId = null;
+        }
+
+        function renderPaymentHistory() {
+            const payments = [...data.payments].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            return `
+                <div class="space-y-3">
+                    ${payments.length === 0 ? '<div class="text-center text-slate-400 py-10">No payment history</div>' : 
+                    payments.map(p => {
+                        const loan = getLoan(p.loanId);
+                        const borrower = loan ? getBorrower(loan.borrowerId) : null;
+                        return `
+                            <div class="p-4 bg-white rounded-2xl border border-slate-100">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold text-xs">
+                                            ${borrower ? getInitials(borrower.name) : '??'}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-sm">${borrower?.name || 'Unknown'}</p>
+                                            <p class="text-[10px] text-slate-400">${p.notes || 'Payment'} • ${formatDate(p.date)}</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-emerald-600">+${formatCurrency(p.amount)}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderProfile() {
+            return `
+                <div class="text-center mt-6">
+                    <div class="w-24 h-24 rounded-3xl bg-white border border-slate-100 shadow-sm mx-auto mb-4 overflow-hidden">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FinanceManager">
+                    </div>
+                    <h3 class="font-black text-xl">Finance Admin</h3>
+                    <p class="text-slate-400 text-sm">License No: FIN-99281</p>
+                    
+                    <div class="mt-6 grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+                            <p class="text-2xl font-bold text-blue-600">${data.borrowers.length}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Borrowers</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+                            <p class="text-2xl font-bold text-emerald-600">${data.loans.length}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Loans</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+                            <p class="text-2xl font-bold text-purple-600">${data.payments.length}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Payments</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 space-y-2 text-left">
+                        <button class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm flex items-center justify-between">
+                            <span class="flex items-center gap-3"><i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Export Data</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                        </button>
+                        <button class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm flex items-center justify-between">
+                            <span class="flex items-center gap-3"><i data-lucide="shield" class="w-4 h-4 text-slate-400"></i> Security</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                        </button>
+                        <button onclick="switchTab('dashboard')" class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm flex items-center gap-3">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Dashboard
+                        </button>
+                        <button onclick="clearData()" class="w-full p-4 bg-amber-50 text-amber-600 rounded-2xl font-bold text-sm mt-4">Reset Demo Data</button>
+                        <button onclick="location.reload()" class="w-full p-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm">Sign Out</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function clearData() {
+            if (confirm('This will reset all data to demo values. Continue?')) {
+                localStorage.removeItem('omnifinance_data');
+                loadData();
+                switchTab('dashboard');
+            }
+        }
+
+        // Close FAB menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const fab = document.getElementById('fab');
+            const fabMenu = document.getElementById('fab-menu');
+            if (fab && !fab.contains(e.target)) {
+                fabMenu?.classList.add('hidden');
+            }
+        });
+
+        // Close receipt modal on background click
+        document.getElementById('receipt-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'receipt-modal') {
+                closeReceipt();
+                switchTab('payments');
+            }
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>3
