@@ -19,7 +19,7 @@
         }
     </script>
     <style>
-        :root { --safe-bottom: env(safe-area-inset-bottom, 0px); --px: 3px; }
+        :root { --safe-bottom: env(safe-area-inset-bottom, 0px); --px: 5px; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
         .app-container { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -58,7 +58,7 @@
         .p-c { padding: clamp(6px, 1.5vw, 14px); }
         .p-cl { padding: clamp(10px, 2.5vw, 20px); }
 
-        #main-content { padding: 3px; padding-bottom: 80px; }
+        #main-content { padding: 5px; padding-bottom: 80px; }
         #bottom-nav { padding-bottom: calc(var(--safe-bottom) + 4px); }
 
         .prop-residential { border-left: 3px solid #3b82f6; }
@@ -66,7 +66,7 @@
         .prop-land { border-left: 3px solid #f59e0b; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
-        .modal-content { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px 3px; }
+        .modal-content { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px 5px; }
 
         /* Desktop wide layout */
         @media (min-width: 768px) {
@@ -98,9 +98,8 @@
 <body class="bg-slate-50 text-slate-900">
 <div id="app" class="app-container">
 
-    <!-- AUTH -->
     <section id="view-auth" class="flex-1 flex flex-col items-center justify-center px-app bg-white">
-        <div class="w-full max-w-sm space-y-6 animate-in" style="padding:0 3px;">
+        <div class="w-full max-w-sm space-y-6 animate-in" style="padding:0 5px;">
             <div class="text-center">
                 <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-xl shadow-blue-100">
                     <i data-lucide="landmark" class="w-7 h-7"></i>
@@ -117,10 +116,8 @@
         </div>
     </section>
 
-    <!-- MAIN -->
     <section id="view-main" class="hidden flex-1 flex flex-col overflow-hidden">
 
-        <!-- Desktop Sidebar -->
         <aside id="desktop-sidebar" class="hidden w-56 bg-white border-r border-slate-100 flex-col flex-shrink-0 overflow-y-auto">
             <div class="p-5 border-b border-slate-50">
                 <div class="flex items-center gap-2">
@@ -163,7 +160,6 @@
         </aside>
 
         <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Header -->
             <header class="flex items-center justify-between bg-white border-b border-slate-50 relative z-10" style="padding:10px var(--px);">
                 <div class="min-w-0 flex-1">
                     <p class="t-xs font-bold text-blue-600 uppercase tracking-widest nowrap md:hidden">Finance Module</p>
@@ -180,11 +176,9 @@
                 </div>
             </header>
 
-            <!-- Content -->
             <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar md:overflow-y-scroll relative"></main>
         </div>
 
-        <!-- Bottom Nav Mobile Only -->
         <nav id="bottom-nav" class="flex justify-around items-center bg-white border-t border-slate-100 z-50 md:hidden" style="padding:6px 0;padding-bottom:calc(var(--safe-bottom)+4px);">
             <button id="tab-home" onclick="switchTab('home')" class="flex flex-col items-center gap-cs text-slate-300 min-w-0 flex-1">
                 <i data-lucide="layout-grid" class="w-5 h-5"></i><span class="t-xs font-bold nowrap">Home</span>
@@ -205,7 +199,6 @@
     </section>
 </div>
 
-<!-- FAB Menu -->
 <div id="fab-menu" class="hidden fixed inset-0 z-[200]" onclick="closeFabMenu(event)">
     <div class="absolute inset-0 bg-black/30"></div>
     <div class="absolute bottom-24 right-3 md:bottom-8 md:right-8 flex flex-col gap-c items-end">
@@ -246,11 +239,11 @@ function seedDummyData() {
     ];
 
     const properties = [
-        { id:'PR1', title:'Plot No 45, Mansarovar', type:'Residential', location:'Mansarovar, Jaipur', area:'200', areaUnit:'sqyd', price:3500000, marketValue:4000000, owner:'Rajesh Sharma', ownerPhone:'9876543210', status:'Mortgaged', registryNo:'JR-2024-4521', notes:'Corner plot, prime location', createdAt:'2024-01-20' },
-        { id:'PR2', title:'Shop G-12, Crystal Mall', type:'Commercial', location:'Vaishali Nagar, Jaipur', area:'450', areaUnit:'sqft', price:8500000, marketValue:9200000, owner:'Vikram Singh', ownerPhone:'9756789012', status:'Available', registryNo:'JR-2024-7823', notes:'Ground floor shop', createdAt:'2024-02-15' },
-        { id:'PR3', title:'Farmland, NH-8', type:'Land', location:'Ajmer Road, Jaipur', area:'2', areaUnit:'acre', price:12000000, marketValue:15000000, owner:'External Party', ownerPhone:'9555444333', status:'Under Deal', registryNo:'', notes:'Near upcoming highway', createdAt:'2024-03-10' },
-        { id:'PR4', title:'Flat 302, Green Valley', type:'Residential', location:'Tonk Road, Jaipur', area:'1200', areaUnit:'sqft', price:4800000, marketValue:5200000, owner:'Priya Patel', ownerPhone:'9823456789', status:'Sold', registryNo:'JR-2024-1156', notes:'3BHK fully furnished', createdAt:'2024-04-05' },
-        { id:'PR5', title:'Warehouse Unit 7', type:'Commercial', location:'Sitapura Industrial, Jaipur', area:'3000', areaUnit:'sqft', price:6500000, marketValue:7000000, owner:'Amit Kumar', ownerPhone:'9934567890', status:'Available', registryNo:'JR-2024-9034', notes:'', createdAt:'2024-05-01' },
+        { id:'PR1', title:'Plot No 45, Mansarovar', type:'Residential', location:'Mansarovar, Jaipur', area:'200', areaUnit:'sqyd', price:3500000, marketValue:4000000, owner:'Rajesh Sharma', ownerPhone:'9876543210', status:'Mortgaged', registryNo:'JR-2024-4521', notes:'Corner plot, prime location', photos:[], createdAt:'2024-01-20' },
+        { id:'PR2', title:'Shop G-12, Crystal Mall', type:'Commercial', location:'Vaishali Nagar, Jaipur', area:'450', areaUnit:'sqft', price:8500000, marketValue:9200000, owner:'Vikram Singh', ownerPhone:'9756789012', status:'Available', registryNo:'JR-2024-7823', notes:'Ground floor shop', photos:[], createdAt:'2024-02-15' },
+        { id:'PR3', title:'Farmland, NH-8', type:'Land', location:'Ajmer Road, Jaipur', area:'2', areaUnit:'acre', price:12000000, marketValue:15000000, owner:'External Party', ownerPhone:'9555444333', status:'Under Deal', registryNo:'', notes:'Near upcoming highway', photos:[], createdAt:'2024-03-10' },
+        { id:'PR4', title:'Flat 302, Green Valley', type:'Residential', location:'Tonk Road, Jaipur', area:'1200', areaUnit:'sqft', price:4800000, marketValue:5200000, owner:'Priya Patel', ownerPhone:'9823456789', status:'Sold', registryNo:'JR-2024-1156', notes:'3BHK fully furnished', photos:[], createdAt:'2024-04-05' },
+        { id:'PR5', title:'Warehouse Unit 7', type:'Commercial', location:'Sitapura Industrial, Jaipur', area:'3000', areaUnit:'sqft', price:6500000, marketValue:7000000, owner:'Amit Kumar', ownerPhone:'9934567890', status:'Available', registryNo:'JR-2024-9034', notes:'', photos:[], createdAt:'2024-05-01' },
     ];
 
     const loans = [
@@ -362,10 +355,44 @@ const fmtF = n => '₹'+parseFloat(n).toLocaleString('en-IN');
 const today = () => new Date().toISOString().split('T')[0];
 
 // ===== ACTIONS =====
+const compressImage = (file, maxSize=800) => new Promise(res => {
+    if(!file || !file.type.startsWith('image/')) return res(null);
+    const r = new FileReader();
+    r.onload = e => {
+        const i = new Image();
+        i.onload = () => {
+            let w=i.width, h=i.height;
+            if(w>h && w>maxSize) { h*=maxSize/w; w=maxSize; } else if(h>w && h>maxSize) { w*=maxSize/h; h=maxSize; }
+            const c = document.createElement('canvas'); c.width=w; c.height=h;
+            c.getContext('2d').drawImage(i,0,0,w,h);
+            res(c.toDataURL('image/jpeg',0.6));
+        };
+        i.src = e.target.result;
+    };
+    r.readAsDataURL(file);
+});
+
 function createBorrower(e) { e.preventDefault(); const f=new FormData(e.target); db.borrowers.push({id:'B'+Date.now(),name:f.get('name'),phone:f.get('phone'),address:f.get('address'),aadhaar:f.get('aadhaar')||'',pan:f.get('pan')||'',occupation:f.get('occupation')||'',creditScore:f.get('creditScore')||'',notes:f.get('notes')||'',createdAt:today()}); db.save(); switchTab('loans'); }
 function createLoan(e) { e.preventDefault(); const f=new FormData(e.target); const loan={id:'L'+Date.now(),borrowerId:f.get('borrowerId'),amount:parseFloat(f.get('amount')),interest:parseFloat(f.get('interest')),tenure:parseInt(f.get('tenure')),startDate:f.get('startDate'),type:f.get('loanType')||'Personal',collateral:f.get('collateral')||'',propertyId:f.get('propertyId')||'',agentId:f.get('agentId')||'',guarantor:f.get('guarantor')||'',guarantorPhone:f.get('guarantorPhone')||'',processingFee:parseFloat(f.get('processingFee'))||0,status:'Active',createdAt:today()}; db.loans.push(loan); if(loan.agentId){const ag=db.agents.find(a=>a.id===loan.agentId);if(ag) db.commissions.push({id:'C'+Date.now(),agentId:loan.agentId,loanId:loan.id,amount:(loan.amount*ag.commissionRate/100).toFixed(2),status:'Pending',date:today()});} db.save(); switchTab('loans'); }
 function addPayment(e) { e.preventDefault(); const f=new FormData(e.target),amt=parseFloat(f.get('amount')),lid=f.get('loanId'); db.payments.push({id:'P'+Date.now(),loanId:lid,amount:amt,date:f.get('date'),method:f.get('method')||'Cash',notes:f.get('notes'),receiptNo:'R'+Date.now().toString().slice(-6),createdAt:today()}); const s=getLoanStats(lid); if(s.balance<=0.01) db.loans.find(l=>l.id===lid).status='Closed'; db.save(); switchTab('payments'); }
-function createProperty(e) { e.preventDefault(); const f=new FormData(e.target); db.properties.push({id:'PR'+Date.now(),title:f.get('title'),type:f.get('type'),location:f.get('location'),area:f.get('area'),areaUnit:f.get('areaUnit')||'sqft',price:parseFloat(f.get('price')),marketValue:parseFloat(f.get('marketValue'))||0,owner:f.get('owner'),ownerPhone:f.get('ownerPhone')||'',status:f.get('status')||'Available',registryNo:f.get('registryNo')||'',notes:f.get('notes')||'',createdAt:today()}); db.save(); switchTab('properties'); }
+
+async function createProperty(e) { 
+    e.preventDefault(); 
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.innerText = 'Saving...'; btn.disabled = true;
+    const f=new FormData(e.target); 
+    const fileInput = e.target.querySelector('input[name="photos"]');
+    const photos = [];
+    if(fileInput && fileInput.files.length) {
+        for(let i=0; i<fileInput.files.length; i++) {
+            const b64 = await compressImage(fileInput.files[i]);
+            if(b64) photos.push(b64);
+        }
+    }
+    db.properties.push({id:'PR'+Date.now(),title:f.get('title'),type:f.get('type'),location:f.get('location'),area:f.get('area'),areaUnit:f.get('areaUnit')||'sqft',price:parseFloat(f.get('price')),marketValue:parseFloat(f.get('marketValue'))||0,owner:f.get('owner'),ownerPhone:f.get('ownerPhone')||'',status:f.get('status')||'Available',registryNo:f.get('registryNo')||'',notes:f.get('notes')||'',photos:photos,createdAt:today()}); 
+    db.save(); switchTab('properties'); 
+}
+
 function createAgent(e) { e.preventDefault(); const f=new FormData(e.target); db.agents.push({id:'A'+Date.now(),name:f.get('name'),phone:f.get('phone'),email:f.get('email')||'',commissionRate:parseFloat(f.get('commissionRate'))||5,specialization:f.get('specialization')||'General',area:f.get('area')||'',status:'Active',createdAt:today()}); db.save(); switchTab('agents'); }
 function addExpense(e) { e.preventDefault(); const f=new FormData(e.target); db.expenses.push({id:'E'+Date.now(),category:f.get('category'),amount:parseFloat(f.get('amount')),description:f.get('description'),date:f.get('date'),loanId:'',propertyId:'',createdAt:today()}); db.save(); switchTab('expenses'); }
 function addReminder(e) { e.preventDefault(); const f=new FormData(e.target); db.reminders.push({id:'RM'+Date.now(),title:f.get('title'),date:f.get('date'),priority:f.get('priority')||'Medium',relatedTo:f.get('relatedTo')||'',done:false,createdAt:today()}); db.save(); switchTab('reminders'); }
@@ -505,7 +532,6 @@ function renderPage(tab) {
             <div class="stat-card bg-white border border-slate-100 text-center"><i data-lucide="indian-rupee" class="w-4 h-4 text-red-500 mx-auto"></i><p class="t-lg font-black mt-0.5">${fmt(totalExp)}</p><p class="t-xs text-slate-400 nowrap">Expenses</p></div>
         </div>
 
-        <!-- Charts Row -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-c mb-cl">
             <div class="bg-white card border border-slate-100 p-cl">
                 <h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Monthly Collections</h3>
@@ -517,7 +543,6 @@ function renderPage(tab) {
             </div>
         </div>
 
-        <!-- Quick Actions -->
         <div class="bg-white p-cl card border border-slate-100 mb-cl">
             <h3 class="t-xs font-bold text-slate-400 mb-c uppercase">Quick Actions</h3>
             <div class="grid grid-cols-4 md:grid-cols-8 gap-c">
@@ -528,19 +553,16 @@ function renderPage(tab) {
             </div>
         </div>
 
-        <!-- Overdue Alerts -->
         ${overdues.length?`<div class="bg-white card border border-red-100 p-cl mb-cl">
             <h3 class="t-xs font-bold text-red-600 mb-c uppercase flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> Overdue Alerts</h3>
             <div class="space-y-1">${overdues.slice(0,4).map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId),s=getLoanStats(l.id);return`<div onclick="switchTab('loan-details','${l.id}')" class="p-c bg-red-50 card-sm flex justify-between items-center cursor-pointer hover:bg-red-100 transition-all"><div class="min-w-0 flex-1"><p class="t-sm font-bold text-red-900 truncate">${b?.name}</p><p class="t-xs text-red-600 nowrap">EMI: ${fmtF(s.emi)} · Bal: ${fmtF(Math.max(0,s.balance))}</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-red-400 flex-shrink-0"></i></div>`;}).join('')}</div>
         </div>`:``}
 
-        <!-- Recent Payments -->
         <div class="bg-white card border border-slate-100 overflow-hidden mb-cl">
             <div class="flex justify-between items-center p-cl pb-0"><h3 class="t-xs font-bold text-slate-400 uppercase">Recent Payments</h3><button onclick="switchTab('payments')" class="t-xs text-blue-600 font-bold">View All</button></div>
             <div class="divide-y divide-slate-50">${[...db.payments].reverse().slice(0,5).map(p=>{const l=db.loans.find(x=>x.id===p.loanId),b=db.borrowers.find(x=>x.id===l?.borrowerId);return`<div class="p-c flex justify-between items-center"><div class="flex items-center gap-2 min-w-0 flex-1"><div class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0"><i data-lucide="arrow-down-left" class="w-3 h-3"></i></div><div class="min-w-0"><p class="t-sm font-bold truncate">${b?.name||'?'}</p><p class="t-xs text-slate-400 nowrap">${p.date} · ${p.method||'Cash'}</p></div></div><span class="t-sm font-black text-emerald-600 nowrap ml-2">+${fmtF(p.amount)}</span></div>`;}).join('')}</div>
         </div>
 
-        <!-- Portfolio Summary -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-c mb-cl">
             <div class="stat-card bg-amber-50 border border-amber-100"><p class="t-xs font-bold text-amber-700 uppercase nowrap">Property Portfolio</p><h4 class="t-xl font-black text-amber-800 mt-0.5">${fmt(propValue)}</h4><p class="t-xs text-amber-600">${db.properties.filter(p=>p.status==='Available').length} available</p></div>
             <div class="stat-card bg-purple-50 border border-purple-100"><p class="t-xs font-bold text-purple-700 uppercase nowrap">Pending Commissions</p><h4 class="t-xl font-black text-purple-800 mt-0.5">${fmt(pendingComm)}</h4><p class="t-xs text-purple-600">${db.commissions.filter(c=>c.status==='Pending').length} pending</p></div>
@@ -725,6 +747,7 @@ function renderPage(tab) {
         <div class="p-c bg-white card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Owner</p><p class="t-sm font-bold">${p.owner} ${p.ownerPhone?'· '+p.ownerPhone:''}</p></div>
         ${p.registryNo?`<div class="p-c bg-white card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Registry</p><p class="t-sm font-bold">${p.registryNo}</p></div>`:''}
         ${p.notes?`<div class="p-c bg-slate-50 card-sm border border-slate-100 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Notes</p><p class="t-sm">${p.notes}</p></div>`:''}
+        ${p.photos && p.photos.length ? `<div class="mb-c mt-cl"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Photos</h3><div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">${p.photos.map(src=>`<img src="${src}" class="h-24 w-24 object-cover rounded-xl border border-slate-200 shadow-sm flex-shrink-0 cursor-pointer" onclick="window.open(this.src)">`).join('')}</div></div>` : ''}
         ${ll.length?`<h3 class="t-xs font-bold text-slate-400 uppercase mb-c mt-cl">Linked Loans (${ll.length})</h3><div class="space-y-1">${ll.map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId);return`<div onclick="switchTab('loan-details','${l.id}')" class="p-c bg-white card-sm border border-slate-100 flex justify-between items-center cursor-pointer"><span class="t-sm font-bold truncate">${b?.name}</span><span class="t-xs text-blue-600 font-bold nowrap">${fmtF(l.amount)}</span></div>`;}).join('')}</div>`:''}`;
     }
 
@@ -773,6 +796,7 @@ function renderPage(tab) {
         <button type="submit" class="w-full btn-primary bg-emerald-600 text-white shadow-lg shadow-emerald-200 mt-2 t-base">Confirm Payment</button></form>`;
 
     if (tab === 'property-create') return `${backBtn('properties')}<form onsubmit="createProperty(event)" class="space-y-2">
+        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Photos</label><input type="file" name="photos" accept="image/*" multiple class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm t-sm"></div>
         <div><label class="t-xs font-bold text-slate-400 ml-0.5">Title *</label><input required name="title" placeholder="e.g. Plot No 45" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
         <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Type *</label><select required name="type" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Residential</option><option>Commercial</option><option>Land</option><option>Agricultural</option><option>Industrial</option></select></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Status</label><select name="status" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"><option>Available</option><option>Sold</option><option>Mortgaged</option><option>Under Deal</option><option>Rented</option></select></div></div>
         <div><label class="t-xs font-bold text-slate-400 ml-0.5">Location *</label><input required name="location" class="w-full field-input bg-white border border-slate-100 outline-none shadow-sm"></div>
