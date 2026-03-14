@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OmniFinance | CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        .app-container { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .hidden { display: none !important; }
+        
+        @keyframes fadeInUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-in { animation: fadeInUp 0.4s ease-out forwards; }
+        
+        .tab-active { color: #2563eb !important; }
+        .tab-active i { stroke-width: 2.5px; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <div id="app" class="app-container">
+        
+        <section id="view-auth" class="flex-1 flex flex-col items-center justify-center p-8 bg-white">
+            <div class="w-full max-w-sm space-y-8 animate-in">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-blue-100">
+                        <i data-lucide="landmark" class="w-8 h-8"></i>
+                    </div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">OmniFinance</h1>
+                    <p class="text-slate-400 mt-2 font-medium">Lending & Capital Management</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="email" placeholder="Email" class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-blue-600 transition-all">
+                    <button onclick="handleAuth()" id="login-btn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">Enter Workspace</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-main" class="hidden flex-1 flex flex-col overflow-hidden">
+            <header class="flex items-center justify-between px-6 py-5 bg-white border-b border-slate-50 relative z-10">
+                <div>
+                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Finance Module</p>
+                    <h2 id="app-title" class="text-lg font-bold">Dashboard</h2>
+                </div>
+                <button onclick="switchTab('profile')" class="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-100">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FinanceManager">
+                </button>
+            </header>
+
+            <main id="main-content" class="flex-1 overflow-y-auto p-5 no-scrollbar relative"></main>
+
+            <button id="fab" onclick="switchTab('payment-entry')" class="fixed right-6 bottom-24 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl shadow-blue-200 flex items-center justify-center active:scale-90 transition-all z-40 hidden">
+                <i data-lucide="plus"></i>
+            </button>
+
+            <nav id="bottom-nav" class="flex justify-around items-center p-4 bg-white border-t border-slate-100 pb-8 md:pb-4 z-50">
+                <button id="tab-home" onclick="switchTab('home')" class="flex flex-col items-center gap-1 text-slate-300">
+                    <i data-lucide="layout-grid" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-bold">Dashboard</span>
+                </button>
+                <button id="tab-loans" onclick="switchTab('loans')" class="flex flex-col items-center gap-1 text-slate-300">
+                    <i data-lucide="briefcase" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-bold">Loans</span>
+                </button>
+                <button id="tab-payments" onclick="switchTab('payments')" class="flex flex-col items-center gap-1 text-slate-300">
+                    <i data-lucide="receipt" class="w-6 h-6"></i>
+                    <span class="text-[10px] font-bold">Payments</span>
+                </button>
+            </nav>
+        </section>
+    </div>
+
+    <script>
+        // --- 1. LIGHTWEIGHT BACKEND (Data Store) ---
+        const db = {
+            borrowers: JSON.parse(localStorage.getItem('of_borrowers')) || [],
+            loans: JSON.parse(localStorage.getItem('of_loans')) || [],
+            payments: JSON.parse(localStorage.getItem('of_payments')) || [],
+            save: function() {
+                localStorage.setItem('of_borrowers', JSON.stringify(this.borrowers));
+                localStorage.setItem('of_loans', JSON.stringify(this.loans));
+                localStorage.setItem('of_payments', JSON.stringify(this.payments));
+            }
+        };
+
+        let state = { tab: 'home', activeLoanId: null };
+
+        // --- 2. CORE LOGIC FUNCTIONS ---
+        const calculateEMI = (amount, rate, tenure) => {
+            const principal = parseFloat(amount);
+            const flatInterest = principal * (parseFloat(rate) / 100) * (parseInt(tenure) / 12);
+            return {
+                totalPayable: principal + flatInterest,
+                emi: ((principal + flatInterest) / parseInt(tenure)).toFixed(2)
+            };
+        };
+
+        const getLoanStats = (loanId) => {
+            const loan = db.loans.find(l => l.id === loanId);
+            const paid = db.payments.filter(p => p.loanId === loanId).reduce((sum, p) => sum + p.amount, 0);
+            const { totalPayable, emi } = calculateEMI(loan.amount, loan.interest, loan.tenure);
+            const balance = totalPayable - paid;
+            return { ...loan, totalPayable, paid, balance, emi };
+        };
+
+        const getOverdueLoans = () => {
+            const today = new Date();
+            return db.loans.filter(l => {
+                if (l.status !== 'Active') return false;
+                const nextEmiDate = new Date(l.startDate);
+                // Simplified logic: Check if a month has passed without sufficient payments
+                const monthsPassed = Math.floor((today - nextEmiDate) / (1000 * 60 * 60 * 24 * 30));
+                const stats = getLoanStats(l.id);
+                const expectedPaid = monthsPassed * stats.emi;
+                return monthsPassed > 0 && stats.paid < expectedPaid;
+            });
+        };
+
+        // --- 3. ACTIONS ---
+        function createBorrower(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            db.borrowers.push({
+                id: 'B' + Date.now(),
+                name: fd.get('name'), phone: fd.get('phone'), address: fd.get('address')
+            });
+            db.save();
+            switchTab('loans');
+        }
+
+        function createLoan(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            db.loans.push({
+                id: 'L' + Date.now(),
+                borrowerId: fd.get('borrowerId'),
+                amount: parseFloat(fd.get('amount')),
+                interest: parseFloat(fd.get('interest')),
+                tenure: parseInt(fd.get('tenure')),
+                startDate: fd.get('startDate'),
+                status: 'Active'
+            });
+            db.save();
+            switchTab('loans');
+        }
+
+        function addPayment(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const amount = parseFloat(fd.get('amount'));
+            const loanId = fd.get('loanId');
+            
+            db.payments.push({
+                id: 'P' + Date.now(),
+                loanId: loanId,
+                amount: amount,
+                date: fd.get('date'),
+                notes: fd.get('notes')
+            });
+            
+            // Check if loan is closed
+            const stats = getLoanStats(loanId);
+            if (stats.balance <= 0) {
+                const loan = db.loans.find(l => l.id === loanId);
+                loan.status = 'Closed';
+            }
+            db.save();
+            switchTab('payments');
+        }
+
+        function closeLoan(loanId) {
+            if(confirm("Mark this loan as fully closed?")) {
+                const loan = db.loans.find(l => l.id === loanId);
+                loan.status = 'Closed';
+                db.save();
+                switchTab('loans');
+            }
+        }
+
+        // --- 4. NAVIGATION & RENDERING ---
+        function showView(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`view-${id}`).classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function handleAuth() {
+            document.getElementById('login-btn').innerText = 'Accessing...';
+            setTimeout(() => { showView('main'); switchTab('home'); }, 600);
+        }
+
+        function switchTab(tab, id = null) {
+            state.tab = tab;
+            if(id) state.activeLoanId = id;
+
+            const container = document.getElementById('main-content');
+            const nav = document.getElementById('bottom-nav');
+            const title = document.getElementById('app-title');
+            const fab = document.getElementById('fab');
+            
+            // Handle bottom nav visibility
+            const mainTabs = ['home', 'loans', 'payments'];
+            if (mainTabs.includes(tab)) {
+                nav.classList.remove('hidden');
+                fab.classList.remove('hidden');
+                document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
+                document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            } else {
+                nav.classList.add('hidden');
+                fab.classList.add('hidden');
+            }
+
+            // Set Titles
+            const titles = {
+                'home': 'Dashboard', 'loans': 'Active Loans', 'payments': 'Payments',
+                'borrower-create': 'New Borrower', 'loan-create': 'New Loan',
+                'loan-details': 'Loan Details', 'payment-entry': 'Collect Payment',
+                'profile': 'Settings'
+            };
+            title.innerText = titles[tab] || 'Dashboard';
+
+            container.innerHTML = `<div class="animate-in pb-20">${renderPage(tab)}</div>`;
+            lucide.createIcons();
+        }
+
+        function renderPage(tab) {
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            if (tab === 'home') {
+                const totalLent = db.loans.reduce((s, l) => s + l.amount, 0);
+                const outstanding = db.loans.reduce((s, l) => s + getLoanStats(l.id).balance, 0);
+                const todayColl = db.payments.filter(p => p.date === todayStr).reduce((s, p) => s + p.amount, 0);
+                const overdues = getOverdueLoans();
+
+                return `
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-blue-600 text-white p-5 rounded-3xl shadow-lg shadow-blue-100">
+                            <p class="text-[10px] font-bold opacity-70 uppercase">Total Lent</p>
+                            <h4 class="text-xl font-black mt-1">$${totalLent.toLocaleString()}</h4>
+                        </div>
+                        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Outstanding</p>
+                            <h4 class="text-xl font-black mt-1">$${outstanding.toLocaleString()}</h4>
+                        </div>
+                        <div class="bg-emerald-50 text-emerald-700 p-5 rounded-3xl border border-emerald-100">
+                            <p class="text-[10px] font-bold opacity-70 uppercase">Today's Collection</p>
+                            <h4 class="text-xl font-black mt-1">$${todayColl.toLocaleString()}</h4>
+                        </div>
+                        <div class="bg-red-50 text-red-700 p-5 rounded-3xl border border-red-100 relative">
+                            ${overdues.length > 0 ? `<div class="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>` : ''}
+                            <p class="text-[10px] font-bold opacity-70 uppercase">Overdue Loans</p>
+                            <h4 class="text-xl font-black mt-1">${overdues.length}</h4>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 mb-6">
+                        <h3 class="text-sm font-bold text-slate-400 mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="switchTab('borrower-create')" class="flex flex-col items-center justify-center gap-2 py-4 bg-slate-50 rounded-2xl font-bold text-[10px]">
+                                <i data-lucide="user-plus" class="w-5 h-5 text-blue-600"></i> Borrower
+                            </button>
+                            <button onclick="switchTab('loan-create')" class="flex flex-col items-center justify-center gap-2 py-4 bg-slate-50 rounded-2xl font-bold text-[10px]">
+                                <i data-lucide="briefcase" class="w-5 h-5 text-indigo-600"></i> Loan
+                            </button>
+                            <button onclick="switchTab('payment-entry')" class="flex flex-col items-center justify-center gap-2 py-4 bg-slate-50 rounded-2xl font-bold text-[10px]">
+                                <i data-lucide="receipt" class="w-5 h-5 text-emerald-600"></i> Payment
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (tab === 'loans') {
+                return `
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="relative w-full mr-3">
+                            <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-slate-300"></i>
+                            <input type="text" placeholder="Search loans..." class="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-slate-100 text-sm outline-none shadow-sm">
+                        </div>
+                        <button onclick="switchTab('loan-create')" class="bg-blue-600 text-white p-3 rounded-2xl shadow-sm"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="space-y-3">
+                        ${db.loans.length === 0 ? '<p class="text-center text-slate-400 text-sm py-10">No active loans.</p>' : ''}
+                        ${db.loans.map(l => {
+                            const b = db.borrowers.find(bor => bor.id === l.borrowerId);
+                            const stats = getLoanStats(l.id);
+                            const progress = Math.min(100, (stats.paid / stats.totalPayable) * 100).toFixed(0);
+                            const isOverdue = getOverdueLoans().find(o => o.id === l.id);
+                            
+                            return `
+                                <div onclick="switchTab('loan-details', '${l.id}')" class="p-4 bg-white rounded-3xl border ${isOverdue ? 'border-red-200' : 'border-slate-100'} shadow-sm relative overflow-hidden">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center font-bold text-sm">${b ? b.name.charAt(0) : '?'}</div>
+                                            <div>
+                                                <p class="font-bold text-sm text-slate-900">${b ? b.name : 'Unknown'}</p>
+                                                <p class="text-[10px] text-slate-400">Amt: $${l.amount} | EMI: $${stats.emi}</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[9px] font-bold px-2 py-1 rounded-lg uppercase ${isOverdue ? 'bg-red-50 text-red-600' : l.status === 'Active' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}">${isOverdue ? 'OVERDUE' : l.status}</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-1">
+                                        <div class="h-full ${isOverdue ? 'bg-red-500' : 'bg-emerald-500'}" style="width: ${progress}%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] font-bold text-slate-400">
+                                        <span>Bal: $${stats.balance > 0 ? stats.balance.toLocaleString() : '0'}</span>
+                                        <span>${progress}%</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            if (tab === 'payments') {
+                const overdues = getOverdueLoans();
+                return `
+                    ${overdues.length > 0 ? `
+                    <div class="mb-6">
+                        <h3 class="text-xs font-bold text-red-600 mb-3 flex items-center gap-2"><i data-lucide="alert-circle" class="w-4 h-4"></i> Pending EMIs</h3>
+                        <div class="space-y-2">
+                            ${overdues.map(l => {
+                                const b = db.borrowers.find(bor => bor.id === l.borrowerId);
+                                const stats = getLoanStats(l.id);
+                                return `
+                                <div class="p-3 bg-red-50 border border-red-100 rounded-2xl flex justify-between items-center">
+                                    <div><p class="font-bold text-xs text-red-900">${b?.name}</p><p class="text-[10px] text-red-700">EMI: $${stats.emi}</p></div>
+                                    <button onclick="switchTab('payment-entry')" class="px-3 py-1 bg-red-600 text-white rounded-lg text-[10px] font-bold">Collect</button>
+                                </div>`
+                            }).join('')}
+                        </div>
+                    </div>` : ''}
+
+                    <h3 class="text-xs font-bold text-slate-400 mb-3 uppercase">Payment History</h3>
+                    <div class="bg-white rounded-3xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
+                        ${db.payments.length === 0 ? '<p class="text-center text-slate-400 text-xs py-6">No payments yet.</p>' : ''}
+                        ${[...db.payments].reverse().map(p => {
+                            const l = db.loans.find(ln => ln.id === p.loanId);
+                            const b = db.borrowers.find(bor => bor.id === l?.borrowerId);
+                            return `
+                            <div class="p-4 flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center"><i data-lucide="arrow-down-left" class="w-4 h-4"></i></div>
+                                    <div><p class="font-bold text-sm">${b ? b.name : 'Unknown'}</p><p class="text-[10px] text-slate-400">${p.date} ${p.notes ? '• '+p.notes : ''}</p></div>
+                                </div>
+                                <span class="font-black text-emerald-600">+$${p.amount}</span>
+                            </div>`
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            if (tab === 'loan-details') {
+                const loan = db.loans.find(l => l.id === state.activeLoanId);
+                const b = db.borrowers.find(bor => bor.id === loan.borrowerId);
+                const stats = getLoanStats(loan.id);
+                const progress = Math.min(100, (stats.paid / stats.totalPayable) * 100).toFixed(0);
+                const loanPayments = db.payments.filter(p => p.loanId === loan.id).reverse();
+
+                return `
+                    <div class="flex items-center gap-4 mb-6">
+                        <button onclick="switchTab('loans')" class="p-2 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                        <div><h2 class="text-lg font-bold">${b?.name}</h2><p class="text-[10px] text-slate-400">${b?.phone}</p></div>
+                    </div>
+
+                    <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg mb-6">
+                        <div class="flex justify-between items-end mb-4">
+                            <div><p class="text-[10px] font-bold opacity-70 uppercase">Remaining Balance</p><h4 class="text-3xl font-black mt-1">$${stats.balance > 0 ? stats.balance.toLocaleString() : '0'}</h4></div>
+                            <span class="px-2 py-1 bg-white/20 rounded-lg text-[10px] font-bold">${loan.status}</span>
+                        </div>
+                        <div class="w-full bg-blue-900/50 h-2 rounded-full overflow-hidden mb-2">
+                            <div class="h-full bg-white" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold opacity-80">
+                            <span>Paid: $${stats.paid.toLocaleString()}</span>
+                            <span>Total: $${stats.totalPayable.toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="p-4 bg-white rounded-2xl border border-slate-100"><p class="text-[10px] text-slate-400 font-bold uppercase">Principal</p><p class="font-bold text-sm">$${loan.amount}</p></div>
+                        <div class="p-4 bg-white rounded-2xl border border-slate-100"><p class="text-[10px] text-slate-400 font-bold uppercase">Monthly EMI</p><p class="font-bold text-sm text-blue-600">$${stats.emi}</p></div>
+                        <div class="p-4 bg-white rounded-2xl border border-slate-100"><p class="text-[10px] text-slate-400 font-bold uppercase">Interest Rate</p><p class="font-bold text-sm">${loan.interest}% Flat</p></div>
+                        <div class="p-4 bg-white rounded-2xl border border-slate-100"><p class="text-[10px] text-slate-400 font-bold uppercase">Tenure</p><p class="font-bold text-sm">${loan.tenure} Months</p></div>
+                    </div>
+
+                    <div class="flex gap-3 mb-8">
+                        ${loan.status === 'Active' ? `<button onclick="switchTab('payment-entry')" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-md">Add Payment</button>` : ''}
+                        ${loan.status === 'Active' ? `<button onclick="closeLoan('${loan.id}')" class="flex-1 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm shadow-sm">Close Loan</button>` : ''}
+                    </div>
+
+                    <h3 class="text-xs font-bold text-slate-400 mb-3 uppercase">Loan History</h3>
+                    <div class="space-y-2">
+                        ${loanPayments.length === 0 ? '<p class="text-xs text-slate-400">No payments made.</p>' : loanPayments.map(p => `
+                            <div class="p-3 bg-white rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
+                                <div><p class="font-bold text-sm text-slate-700">${p.date}</p><p class="text-[10px] text-slate-400">${p.notes || 'Payment'}</p></div>
+                                <span class="font-bold text-emerald-600">+$${p.amount}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            if (tab === 'borrower-create') return `
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="switchTab('loans')" class="p-2 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <h2 class="text-lg font-bold">New Borrower</h2>
+                </div>
+                <form onsubmit="createBorrower(event)" class="space-y-4">
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Full Name</label><input required name="name" type="text" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm focus:border-blue-500"></div>
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Phone Number</label><input required name="phone" type="tel" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm focus:border-blue-500"></div>
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Address</label><textarea name="address" rows="3" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm focus:border-blue-500"></textarea></div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg mt-4">Save Borrower</button>
+                </form>
+            `;
+
+            if (tab === 'loan-create') return `
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="switchTab('loans')" class="p-2 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <h2 class="text-lg font-bold">Issue Loan</h2>
+                </div>
+                <form onsubmit="createLoan(event)" class="space-y-4">
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Borrower</label>
+                        <select required name="borrowerId" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm">
+                            <option value="">Select Borrower...</option>
+                            ${db.borrowers.map(b => `<option value="${b.id}">${b.name} (${b.phone})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Amount ($)</label><input required name="amount" type="number" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm"></div>
+                        <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Interest (%)</label><input required name="interest" type="number" step="0.1" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Tenure (Months)</label><input required name="tenure" type="number" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm"></div>
+                        <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Start Date</label><input required name="startDate" type="date" value="${todayStr}" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm"></div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg mt-4">Create Loan</button>
+                </form>
+            `;
+
+            if (tab === 'payment-entry') return `
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="switchTab('payments')" class="p-2 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <h2 class="text-lg font-bold">Record Payment</h2>
+                </div>
+                <form onsubmit="addPayment(event)" class="space-y-4">
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Select Loan</label>
+                        <select required name="loanId" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm focus:border-emerald-500">
+                            <option value="">Choose active loan...</option>
+                            ${db.loans.filter(l => l.status === 'Active').map(l => {
+                                const b = db.borrowers.find(bor => bor.id === l.borrowerId);
+                                const stats = getLoanStats(l.id);
+                                return `<option value="${l.id}">${b?.name} (Due: $${stats.emi})</option>`;
+                            }).join('')}
+                        </select>
+                    </div>
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Amount Collected</label><input required name="amount" type="number" step="0.01" placeholder="$" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm focus:border-emerald-500"></div>
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Payment Date</label><input required name="date" type="date" value="${todayStr}" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm"></div>
+                    <div class="space-y-1"><label class="text-xs font-bold text-slate-400 ml-1">Notes (Optional)</label><input name="notes" type="text" placeholder="e.g. Cash, Bank Transfer" class="w-full p-4 rounded-2xl bg-white border border-slate-100 outline-none shadow-sm"></div>
+                    <button type="submit" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-emerald-200 mt-4">Confirm Payment</button>
+                </form>
+            `;
+
+            if (tab === 'profile') return `
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="switchTab('home')" class="p-2 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <h2 class="text-lg font-bold">Settings</h2>
+                </div>
+                <div class="text-center mt-6">
+                    <div class="w-24 h-24 rounded-3xl bg-white border border-slate-100 shadow-sm mx-auto mb-4 overflow-hidden">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=FinanceManager">
+                    </div>
+                    <h3 class="font-black text-xl">Finance Admin</h3>
+                    <p class="text-slate-400 text-sm">License No: FIN-99281</p>
+                    
+                    <div class="mt-8 space-y-2 text-left">
+                        <button class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm flex items-center justify-between shadow-sm">
+                            <span class="flex items-center gap-3"><i data-lucide="database" class="w-4 h-4 text-slate-400"></i> Export Database</span>
+                            <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
+                        </button>
+                        <button onclick="if(confirm('Wipe all data?')){localStorage.clear();location.reload();}" class="w-full p-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm mt-4 shadow-sm flex items-center justify-center gap-2">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i> Reset App Data
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Init icons strictly once if needed, handled globally inside render
+        lucide.createIcons();
+    </script>
+</body>
+</html>
