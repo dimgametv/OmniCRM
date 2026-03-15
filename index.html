@@ -14,12 +14,20 @@
             theme: {
                 extend: {
                     screens: { 'xs': '380px' },
-                    fontSize: { 'xxs': ['0.625rem', { lineHeight: '0.875rem' }] }
+                    fontSize: { 'xxs': ['0.625rem', { lineHeight: '0.875rem' }] },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' },
+                        }
+                    }
                 }
             }
         }
         
-        // Initialize theme early to prevent flash
         if (localStorage.getItem('of_theme') === 'dark') {
             document.documentElement.classList.add('dark');
         }
@@ -29,7 +37,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
         
-        /* Smooth transitions for theme switching */
         body * { transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease; }
         
         .app-container { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -44,7 +51,6 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .px-app { padding-left: var(--px); padding-right: var(--px); }
 
-        /* Responsive text using clamp */
         .t-xs { font-size: clamp(8px, 2.2vw, 11px); }
         .t-sm { font-size: clamp(10px, 2.8vw, 13px); }
         .t-base { font-size: clamp(12px, 3.2vw, 15px); }
@@ -82,7 +88,6 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
         .modal-content { border-radius: 5px 5px 0 0 !important; width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px 5px; }
 
-        /* Desktop wide layout */
         @media (min-width: 768px) {
             :root { --px: 12px; }
             #main-content { padding: 16px 24px 90px; max-width: 1200px; margin: 0 auto; width: 100%; }
@@ -97,11 +102,9 @@
             #desktop-sidebar { display: none !important; }
         }
 
-        /* Chart container */
         .chart-container { position: relative; width: 100%; }
         .chart-container canvas { width: 100% !important; }
 
-        /* Smooth scrollbar for desktop */
         @media (min-width: 768px) {
             #main-content::-webkit-scrollbar { width: 6px; }
             #main-content::-webkit-scrollbar-track { background: transparent; }
@@ -183,7 +186,7 @@
                 <div class="flex items-center gap-c">
                     <button onclick="toggleTheme()" class="w-8 h-8 rounded-[5px] bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700">
                         <i data-lucide="moon" class="w-4 h-4 text-slate-500 dark:hidden"></i>
-                        <i data-lucide="sun" class="w-4 h-4 text-slate-400 hidden dark:block"></i>
+                        <i data-lucide="sun" class="w-4 h-4 text-amber-400 hidden dark:block"></i>
                     </button>
                     <button onclick="showNotifications()" class="w-8 h-8 rounded-[5px] bg-slate-50 dark:bg-slate-800 flex items-center justify-center relative border border-slate-100 dark:border-slate-700">
                         <i data-lucide="bell" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
@@ -218,23 +221,32 @@
     </section>
 </div>
 
-<div id="fab-menu" class="hidden fixed inset-0 z-[200]" onclick="closeFabMenu(event)">
-    <div class="absolute inset-0 bg-black/50"></div>
-    <div class="absolute bottom-24 right-3 md:bottom-8 md:right-8 flex flex-col gap-c items-end">
-        <button onclick="switchTab('borrower-create');closeFabMenu();" class="flex items-center gap-2 bg-white dark:bg-slate-800 shadow-lg rounded-[5px] py-2 px-3 t-sm font-bold animate-in">
-            <span class="nowrap">New Borrower</span><div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-[5px] flex items-center justify-center"><i data-lucide="user-plus" class="w-4 h-4"></i></div>
-        </button>
-        <button onclick="switchTab('loan-create');closeFabMenu();" class="flex items-center gap-2 bg-white dark:bg-slate-800 shadow-lg rounded-[5px] py-2 px-3 t-sm font-bold animate-in" style="animation-delay:50ms">
-            <span class="nowrap">New Loan</span><div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-[5px] flex items-center justify-center"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
-        </button>
-        <button onclick="switchTab('payment-entry');closeFabMenu();" class="flex items-center gap-2 bg-white dark:bg-slate-800 shadow-lg rounded-[5px] py-2 px-3 t-sm font-bold animate-in" style="animation-delay:100ms">
-            <span class="nowrap">Add Payment</span><div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-[5px] flex items-center justify-center"><i data-lucide="receipt" class="w-4 h-4"></i></div>
-        </button>
-        <button onclick="switchTab('property-create');closeFabMenu();" class="flex items-center gap-2 bg-white dark:bg-slate-800 shadow-lg rounded-[5px] py-2 px-3 t-sm font-bold animate-in" style="animation-delay:150ms">
-            <span class="nowrap">Add Property</span><div class="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-[5px] flex items-center justify-center"><i data-lucide="home" class="w-4 h-4"></i></div>
-        </button>
+<div id="fab-menu" class="hidden fixed inset-0 z-[200]">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeFabMenu(event)"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-[20px] p-cl animate-slide-up flex flex-col gap-c shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10 md:w-96 md:mx-auto" style="padding-bottom: calc(var(--safe-bottom) + 20px);">
+        <div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-2"></div>
+        <h3 class="t-sm font-bold text-slate-400 uppercase text-center mb-2 tracking-wider">Create New</h3>
+        <div class="grid grid-cols-2 gap-c">
+            <button onclick="switchTab('borrower-create');closeFabMenu();" class="p-c bg-slate-50 dark:bg-slate-800 rounded-[5px] flex flex-col items-center gap-2 border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center"><i data-lucide="user-plus" class="w-6 h-6"></i></div>
+                <span class="t-sm font-bold text-slate-900 dark:text-slate-100">Borrower</span>
+            </button>
+            <button onclick="switchTab('loan-create');closeFabMenu();" class="p-c bg-slate-50 dark:bg-slate-800 rounded-[5px] flex flex-col items-center gap-2 border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center"><i data-lucide="briefcase" class="w-6 h-6"></i></div>
+                <span class="t-sm font-bold text-slate-900 dark:text-slate-100">Loan</span>
+            </button>
+            <button onclick="switchTab('payment-entry');closeFabMenu();" class="p-c bg-slate-50 dark:bg-slate-800 rounded-[5px] flex flex-col items-center gap-2 border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center"><i data-lucide="receipt" class="w-6 h-6"></i></div>
+                <span class="t-sm font-bold text-slate-900 dark:text-slate-100">Payment</span>
+            </button>
+            <button onclick="switchTab('property-create');closeFabMenu();" class="p-c bg-slate-50 dark:bg-slate-800 rounded-[5px] flex flex-col items-center gap-2 border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center"><i data-lucide="home" class="w-6 h-6"></i></div>
+                <span class="t-sm font-bold text-slate-900 dark:text-slate-100">Property</span>
+            </button>
+        </div>
     </div>
 </div>
+
 <div id="modal-container" class="hidden"></div>
 
 <script>
@@ -321,7 +333,7 @@ db.reminders = JSON.parse(localStorage.getItem('of_reminders')) || [];
 let state = { tab:'home', activeLoanId:null, activePropertyId:null, activeAgentId:null };
 let chartInstances = {};
 
-// ===== CALCULATIONS =====
+// ===== CALCULATIONS & UTILS =====
 const calculateEMI = (a, r, t) => {
     const p = parseFloat(a), fi = p * (parseFloat(r)/100) * (parseInt(t)/12);
     return { totalPayable: p+fi, emi: ((p+fi)/parseInt(t)).toFixed(2) };
@@ -363,34 +375,93 @@ const compressImage = (file, maxSize=800) => new Promise(res => {
     r.readAsDataURL(file);
 });
 
+// ===== MODERN PHOTO UPLOADER LOGIC =====
+async function previewSlotImg(input) {
+    if(!input.files||!input.files[0]) return;
+    const b64 = await compressImage(input.files[0]);
+    if(b64) {
+        const container = input.parentElement;
+        const img = container.querySelector('.slot-preview');
+        const btn = container.querySelector('.slot-remove');
+        const icon = container.querySelector('i[data-lucide="image-plus"]');
+        const text = container.querySelector('span');
+        img.src = b64; img.classList.remove('hidden');
+        btn.classList.remove('hidden');
+        icon.classList.add('hidden'); text.classList.add('hidden');
+        input.dataset.b64 = b64;
+    }
+}
+function removeSlotImg(e, btn) {
+    e.preventDefault(); e.stopPropagation();
+    const container = btn.parentElement;
+    const input = container.querySelector('input');
+    const img = container.querySelector('.slot-preview');
+    const icon = container.querySelector('i[data-lucide="image-plus"]');
+    const text = container.querySelector('span');
+    input.value = ''; input.dataset.b64 = '';
+    img.src = ''; img.classList.add('hidden');
+    btn.classList.add('hidden');
+    icon.classList.remove('hidden'); text.classList.remove('hidden');
+}
+
+const photoSlotHTML = (type, index) => `
+<label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[5px] h-28 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 relative overflow-hidden group transition-colors">
+    <input type="file" class="hidden ${type}-img-upload" accept="image/*" onchange="previewSlotImg(this)">
+    <i data-lucide="image-plus" class="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors mb-1"></i>
+    <span class="t-xs text-slate-500 text-center px-1">Photo ${index}</span>
+    <img class="absolute inset-0 w-full h-full object-cover hidden slot-preview z-10" />
+    <button type="button" class="hidden absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full shadow-md slot-remove z-20 hover:bg-red-600 transition-colors" onclick="removeSlotImg(event, this)"><i data-lucide="x" class="w-3 h-3"></i></button>
+</label>
+`;
+
+async function addExistingPhoto(input, type, id) {
+    if(!input.files||!input.files[0]) return;
+    const overlay = input.parentElement.querySelector('.loading-overlay');
+    if(overlay) overlay.classList.remove('hidden');
+    const b64 = await compressImage(input.files[0]);
+    if(b64) {
+        if(type === 'property') {
+            const p = db.properties.find(x=>x.id===id);
+            if(!p.photos) p.photos = [];
+            p.photos.push(b64);
+        } else if(type === 'loan-borrower') {
+            const l = db.loans.find(x=>x.id===id);
+            if(!l.borrowerPhotos) l.borrowerPhotos = [];
+            l.borrowerPhotos.push(b64);
+        } else if(type === 'loan-guarantor') {
+            const l = db.loans.find(x=>x.id===id);
+            if(!l.guarantorPhotos) l.guarantorPhotos = [];
+            l.guarantorPhotos.push(b64);
+        }
+        db.save();
+        switchTab(state.tab, id); 
+    }
+}
+
+const addExistingPhotoSlot = (type, id) => `
+<label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[5px] h-24 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 relative overflow-hidden group transition-colors">
+    <input type="file" class="hidden" accept="image/*" onchange="addExistingPhoto(this, '${type}', '${id}')">
+    <i data-lucide="image-plus" class="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-1"></i>
+    <span class="t-xs text-slate-500">Add Photo</span>
+    <div class="absolute inset-0 bg-white/80 dark:bg-slate-900/80 items-center justify-center hidden loading-overlay z-20 flex"><div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>
+</label>
+`;
+
 // ===== ACTIONS =====
 function createBorrower(e) { e.preventDefault(); const f=new FormData(e.target); db.borrowers.push({id:'B'+Date.now(),name:f.get('name'),phone:f.get('phone'),address:f.get('address'),aadhaar:f.get('aadhaar')||'',pan:f.get('pan')||'',occupation:f.get('occupation')||'',creditScore:f.get('creditScore')||'',notes:f.get('notes')||'',createdAt:today()}); db.save(); switchTab('loans'); }
 
-async function createLoan(e) { 
+function createLoan(e) { 
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
-    btn.innerText = 'Processing Images...'; 
-    btn.disabled = true; 
+    btn.innerText = 'Processing...'; btn.disabled = true; 
     
     const f = new FormData(e.target); 
-    const bInput = e.target.querySelector('input[name="borrowerPhotos"]');
-    const gInput = e.target.querySelector('input[name="guarantorPhotos"]');
     
     const borrowerPhotos = [];
-    if(bInput && bInput.files.length) {
-        for(let i=0; i<Math.min(bInput.files.length, 2); i++) { // Max 2 files
-            const b64 = await compressImage(bInput.files[i]);
-            if(b64) borrowerPhotos.push(b64);
-        }
-    }
+    e.target.querySelectorAll('.borr-img-upload').forEach(i => { if(i.dataset.b64) borrowerPhotos.push(i.dataset.b64); });
     
     const guarantorPhotos = [];
-    if(gInput && gInput.files.length) {
-        for(let i=0; i<Math.min(gInput.files.length, 2); i++) { // Max 2 files
-            const b64 = await compressImage(gInput.files[i]);
-            if(b64) guarantorPhotos.push(b64);
-        }
-    }
+    e.target.querySelectorAll('.guar-img-upload').forEach(i => { if(i.dataset.b64) guarantorPhotos.push(i.dataset.b64); });
 
     const loan={id:'L'+Date.now(),borrowerId:f.get('borrowerId'),amount:parseFloat(f.get('amount')),interest:parseFloat(f.get('interest')),tenure:parseInt(f.get('tenure')),startDate:f.get('startDate'),type:f.get('loanType')||'Personal',collateral:f.get('collateral')||'',propertyId:f.get('propertyId')||'',agentId:f.get('agentId')||'',guarantor:f.get('guarantor')||'',guarantorPhone:f.get('guarantorPhone')||'',processingFee:parseFloat(f.get('processingFee'))||0,status:'Active',createdAt:today(), borrowerPhotos, guarantorPhotos}; 
     
@@ -404,22 +475,14 @@ async function createLoan(e) {
 
 function addPayment(e) { e.preventDefault(); const f=new FormData(e.target),amt=parseFloat(f.get('amount')),lid=f.get('loanId'); db.payments.push({id:'P'+Date.now(),loanId:lid,amount:amt,date:f.get('date'),method:f.get('method')||'Cash',notes:f.get('notes'),receiptNo:'R'+Date.now().toString().slice(-6),createdAt:today()}); const s=getLoanStats(lid); if(s.balance<=0.01) db.loans.find(l=>l.id===lid).status='Closed'; db.save(); switchTab('payments'); }
 
-async function createProperty(e) { 
+function createProperty(e) { 
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
-    btn.innerText = 'Processing Images...'; 
-    btn.disabled = true; 
+    btn.innerText = 'Processing...'; btn.disabled = true; 
     
     const f=new FormData(e.target); 
-    const fileInput = e.target.querySelector('input[name="photos"]');
     const photos = [];
-    
-    if(fileInput && fileInput.files.length) {
-        for(let i=0; i<Math.min(fileInput.files.length, 5); i++) { // Max 5 files
-            const b64 = await compressImage(fileInput.files[i]);
-            if(b64) photos.push(b64);
-        }
-    }
+    e.target.querySelectorAll('.prop-img-upload').forEach(i => { if(i.dataset.b64) photos.push(i.dataset.b64); });
 
     db.properties.push({id:'PR'+Date.now(),title:f.get('title'),type:f.get('type'),location:f.get('location'),area:f.get('area'),areaUnit:f.get('areaUnit')||'sqft',price:parseFloat(f.get('price')),marketValue:parseFloat(f.get('marketValue'))||0,owner:f.get('owner'),ownerPhone:f.get('ownerPhone')||'',status:f.get('status')||'Available',registryNo:f.get('registryNo')||'',notes:f.get('notes')||'',photos:photos,createdAt:today()}); 
     db.save(); switchTab('properties'); 
@@ -436,7 +499,7 @@ function deleteItem(t,id) { if(!confirm("Delete permanently?")) return; db[t]=db
 function showView(id) { document.querySelectorAll('#app > section').forEach(s=>s.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); lucide.createIcons(); }
 function handleAuth() { document.getElementById('login-btn').innerText='Accessing...'; setTimeout(()=>{showView('main');switchTab('home');},500); }
 function showFabMenu() { document.getElementById('fab-menu').classList.remove('hidden'); setTimeout(()=>lucide.createIcons(),50); }
-function closeFabMenu(e) { if(!e||e.target===e.currentTarget||e.target.closest('.bg-black\\/50')) document.getElementById('fab-menu').classList.add('hidden'); }
+function closeFabMenu(e) { if(!e||e.target===e.currentTarget||e.target.closest('.bg-black\\/60')) document.getElementById('fab-menu').classList.add('hidden'); }
 function showNotifications() {
     const od=getOverdueLoans(), pr=db.reminders.filter(r=>!r.done&&r.date<=today());
     let h=`<div class="modal-overlay" onclick="if(event.target===this)document.getElementById('modal-container').classList.add('hidden')"><div class="modal-content bg-white dark:bg-slate-900"><div class="flex justify-between items-center mb-cl px-app"><h3 class="t-lg font-bold">Notifications (${od.length+pr.length})</h3><button onclick="document.getElementById('modal-container').classList.add('hidden')" class="p-1"><i data-lucide="x" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i></button></div><div class="space-y-2 px-app">`;
@@ -748,9 +811,12 @@ function renderPage(tab) {
         ${l.guarantor?`<div class="p-c bg-slate-50 dark:bg-slate-800 card-sm border border-slate-100 dark:border-slate-700 mb-c"><p class="t-xs font-bold text-slate-400 uppercase">Guarantor</p><p class="t-sm font-bold text-slate-900 dark:text-slate-100">${l.guarantor} ${l.guarantorPhone?'· '+l.guarantorPhone:''}</p></div>`:''}
         
         ${l.borrowerPhotos && l.borrowerPhotos.length ? `<div class="mb-c mt-cl"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Borrower Photos</h3><div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">${l.borrowerPhotos.map(src=>`<img src="${src}" class="h-20 w-20 object-cover rounded-[5px] border border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0 cursor-pointer" onclick="window.open(this.src)">`).join('')}</div></div>` : ''}
+        ${(l.borrowerPhotos||[]).length < 2 ? `<div class="mb-c mt-c"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Add Borrower Photos</h3><div class="grid grid-cols-2 gap-c">${Array.from({length: 2 - (l.borrowerPhotos||[]).length}).map(() => addExistingPhotoSlot('loan-borrower', l.id)).join('')}</div></div>` : ''}
+
         ${l.guarantorPhotos && l.guarantorPhotos.length ? `<div class="mb-c mt-cl"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Guarantor Photos</h3><div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">${l.guarantorPhotos.map(src=>`<img src="${src}" class="h-20 w-20 object-cover rounded-[5px] border border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0 cursor-pointer" onclick="window.open(this.src)">`).join('')}</div></div>` : ''}
+        ${(l.guarantorPhotos||[]).length < 2 ? `<div class="mb-c mt-c"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Add Guarantor Photos</h3><div class="grid grid-cols-2 gap-c">${Array.from({length: 2 - (l.guarantorPhotos||[]).length}).map(() => addExistingPhotoSlot('loan-guarantor', l.id)).join('')}</div></div>` : ''}
         
-        <div class="flex gap-c mb-cl">
+        <div class="flex gap-c mb-cl mt-cl">
             ${l.status==='Active'?`<button onclick="switchTab('payment-entry')" class="flex-1 btn-primary bg-emerald-600 dark:bg-emerald-500 text-white shadow-md text-center t-sm">Add Payment</button><button onclick="closeLoan('${l.id}')" class="flex-1 btn-primary bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 shadow-sm text-center t-sm">Close Loan</button>`:''}
         </div>
         <h3 class="t-xs font-bold text-slate-400 mb-c uppercase">History (${lp.length})</h3>
@@ -774,6 +840,7 @@ function renderPage(tab) {
         ${p.notes?`<div class="p-c bg-slate-50 dark:bg-slate-800 card-sm border border-slate-100 dark:border-slate-700 mb-c"><p class="t-xs text-slate-400 font-bold uppercase">Notes</p><p class="t-sm text-slate-900 dark:text-slate-100">${p.notes}</p></div>`:''}
         
         ${p.photos && p.photos.length ? `<div class="mb-c mt-cl"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Photos</h3><div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">${p.photos.map(src=>`<img src="${src}" class="h-24 w-24 object-cover rounded-[5px] border border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0 cursor-pointer" onclick="window.open(this.src)">`).join('')}</div></div>` : ''}
+        ${(p.photos||[]).length < 4 ? `<div class="mb-c mt-c"><h3 class="t-xs font-bold text-slate-400 uppercase mb-c">Add More Photos</h3><div class="grid grid-cols-2 md:grid-cols-4 gap-c">${Array.from({length: 4 - (p.photos||[]).length}).map(() => addExistingPhotoSlot('property', p.id)).join('')}</div></div>` : ''}
         
         ${ll.length?`<h3 class="t-xs font-bold text-slate-400 uppercase mb-c mt-cl">Linked Loans (${ll.length})</h3><div class="space-y-1">${ll.map(l=>{const b=db.borrowers.find(x=>x.id===l.borrowerId);return`<div onclick="switchTab('loan-details','${l.id}')" class="p-c bg-white dark:bg-slate-800 card-sm border border-slate-100 dark:border-slate-700 flex justify-between items-center cursor-pointer"><span class="t-sm font-bold truncate text-slate-900 dark:text-slate-100">${b?.name}</span><span class="t-xs text-blue-600 dark:text-blue-400 font-bold nowrap">${fmtF(l.amount)}</span></div>`;}).join('')}</div>`:''}`;
     }
@@ -794,7 +861,7 @@ function renderPage(tab) {
     }
 
     // ===== FORMS =====
-    const fInputClass = "w-full field-input bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 outline-none shadow-sm dark:shadow-none focus:ring-2 focus:ring-blue-600";
+    const fInputClass = "w-full field-input bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 outline-none shadow-sm dark:shadow-none focus:ring-2 focus:ring-blue-600 transition-colors";
     
     if (tab === 'borrower-create') return `${backBtn('loans')}<form onsubmit="createBorrower(event)" class="space-y-2">
         <div><label class="t-xs font-bold text-slate-400 ml-0.5">Full Name *</label><input required name="name" class="${fInputClass}"></div>
@@ -805,12 +872,19 @@ function renderPage(tab) {
         <div><label class="t-xs font-bold text-slate-400 ml-0.5">Notes</label><input name="notes" class="${fInputClass}"></div>
         <button type="submit" class="w-full btn-primary bg-blue-600 text-white shadow-lg dark:shadow-none mt-2 t-base">Save Borrower</button></form>`;
 
-    if (tab === 'loan-create') return `${backBtn('loans')}<form onsubmit="createLoan(event)" class="space-y-2">
-        <div class="grid grid-cols-2 gap-c">
-            <div><label class="t-xs font-bold text-slate-400 ml-0.5">Borrower Photos (Max 2)</label><input type="file" name="borrowerPhotos" accept="image/*" multiple class="${fInputClass} t-sm"></div>
-            <div><label class="t-xs font-bold text-slate-400 ml-0.5">Guarantor Photos (Max 2)</label><input type="file" name="guarantorPhotos" accept="image/*" multiple class="${fInputClass} t-sm"></div>
+    if (tab === 'loan-create') return `${backBtn('loans')}<form onsubmit="createLoan(event)" class="space-y-3">
+        <div>
+            <label class="t-xs font-bold text-slate-400 ml-0.5 mb-1 block uppercase">Borrower Photos (Max 2)</label>
+            <div class="grid grid-cols-2 gap-c">${[1,2].map(i => photoSlotHTML('borr', i)).join('')}</div>
         </div>
-        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Borrower *</label><select required name="borrowerId" class="${fInputClass}"><option value="">Select...</option>${db.borrowers.map(b=>`<option value="${b.id}">${b.name} (${b.phone})</option>`).join('')}</select></div>
+        <div>
+            <label class="t-xs font-bold text-slate-400 ml-0.5 mb-1 block uppercase">Guarantor Photos (Max 2)</label>
+            <div class="grid grid-cols-2 gap-c">${[1,2].map(i => photoSlotHTML('guar', i)).join('')}</div>
+        </div>
+        <div class="pt-2">
+            <label class="t-xs font-bold text-slate-400 ml-0.5">Borrower *</label>
+            <select required name="borrowerId" class="${fInputClass}"><option value="">Select...</option>${db.borrowers.map(b=>`<option value="${b.id}">${b.name} (${b.phone})</option>`).join('')}</select>
+        </div>
         <div><label class="t-xs font-bold text-slate-400 ml-0.5">Loan Type</label><select name="loanType" class="${fInputClass}"><option>Personal</option><option>Property</option><option>Business</option><option>Gold</option><option>Vehicle</option><option>Other</option></select></div>
         <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Amount ₹ *</label><input required name="amount" type="number" class="${fInputClass}"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Interest % *</label><input required name="interest" type="number" step="0.1" class="${fInputClass}"></div></div>
         <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Tenure Mo *</label><input required name="tenure" type="number" class="${fInputClass}"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Start Date *</label><input required name="startDate" type="date" value="${td}" class="${fInputClass}"></div></div>
@@ -827,9 +901,15 @@ function renderPage(tab) {
         <div><label class="t-xs font-bold text-slate-400 ml-0.5">Notes</label><input name="notes" class="${fInputClass}"></div>
         <button type="submit" class="w-full btn-primary bg-emerald-600 dark:bg-emerald-500 text-white shadow-lg dark:shadow-none mt-2 t-base">Confirm Payment</button></form>`;
 
-    if (tab === 'property-create') return `${backBtn('properties')}<form onsubmit="createProperty(event)" class="space-y-2">
-        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Photos (Max 5)</label><input type="file" name="photos" accept="image/*" multiple class="${fInputClass} t-sm"></div>
-        <div><label class="t-xs font-bold text-slate-400 ml-0.5">Title *</label><input required name="title" placeholder="e.g. Plot No 45" class="${fInputClass}"></div>
+    if (tab === 'property-create') return `${backBtn('properties')}<form onsubmit="createProperty(event)" class="space-y-3">
+        <div>
+            <label class="t-xs font-bold text-slate-400 ml-0.5 mb-1 block uppercase">Property Photos (Up to 4)</label>
+            <div class="grid grid-cols-2 gap-c">${[1,2,3,4].map(i => photoSlotHTML('prop', i)).join('')}</div>
+        </div>
+        <div class="pt-2">
+            <label class="t-xs font-bold text-slate-400 ml-0.5">Title *</label>
+            <input required name="title" placeholder="e.g. Plot No 45" class="${fInputClass}">
+        </div>
         <div class="grid grid-cols-2 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Type *</label><select required name="type" class="${fInputClass}"><option>Residential</option><option>Commercial</option><option>Land</option><option>Agricultural</option><option>Industrial</option></select></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Status</label><select name="status" class="${fInputClass}"><option>Available</option><option>Sold</option><option>Mortgaged</option><option>Under Deal</option><option>Rented</option></select></div></div>
         <div><label class="t-xs font-bold text-slate-400 ml-0.5">Location *</label><input required name="location" class="${fInputClass}"></div>
         <div class="grid grid-cols-3 gap-c"><div><label class="t-xs font-bold text-slate-400 ml-0.5">Area *</label><input required name="area" type="number" class="${fInputClass}"></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Unit</label><select name="areaUnit" class="${fInputClass}"><option>sqft</option><option>sqyd</option><option>acre</option><option>bigha</option></select></div><div><label class="t-xs font-bold text-slate-400 ml-0.5">Price ₹ *</label><input required name="price" type="number" class="${fInputClass}"></div></div>
